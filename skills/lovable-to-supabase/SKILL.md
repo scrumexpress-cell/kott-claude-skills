@@ -12,13 +12,37 @@ description: >
 
 # Migración de Lovable Supabase → Supabase Propio
 
+## REGLA #1 — TRABAJA AUTÓNOMO, NO PREGUNTES
+
+**Lovable NO tiene API pública.** Nunca pidas al usuario que conecte Lovable, ni le preguntes credenciales de Lovable, ni le pidas que haga pasos manuales que tú puedes hacer con tus herramientas. Lovable solo se sincroniza con GitHub — eso es todo lo que necesitas.
+
+Lo único que el usuario DEBE hacer manualmente (porque no hay forma de hacerlo via MCP/API):
+1. **Configurar los secrets** de las edge functions en Supabase Dashboard → Settings → Edge Functions → Secrets (`RESEND_API_KEY`, `OPENAI_API_KEY`, etc.)
+2. **Crear nuevo proyecto Lovable** si se está migrando un proyecto Lovable Cloud existente (ver 0.11 y 0.12 — Lovable Cloud no se puede desconectar)
+
+**TODO lo demás lo haces tú** sin preguntar. Usa las herramientas disponibles en este orden de preferencia:
+
+| Necesidad | Mejor tool | Fallback |
+|---|---|---|
+| Acceder al código del repo | `gh repo clone` (autenticado) | Chrome MCP + GitHub web |
+| Aplicar schema en destino | `mcp__supabase__apply_migration` | Chrome MCP → SQL editor del dashboard |
+| Deployar edge functions | `mcp__supabase__deploy_edge_function` | Chrome MCP → Functions UI |
+| Ver tablas/funciones del destino | `mcp__supabase__list_*` + `execute_sql` | Chrome MCP → Dashboard |
+| Obtener anon key del destino | `mcp__supabase__get_publishable_keys` | Chrome MCP → Settings → API |
+| SQL editor del SOURCE (Lovable Cloud) | Chrome MCP → Lovable SQL editor | (no hay alternativa) |
+
+**Decide el path al inicio:** si tienes MCP del destino y `gh` autenticado, usas el path rápido (todo via MCP + git). Si no, caes al path con Chrome MCP descrito en la Fase 0.
+
+---
+
 ## Contexto importante
 
-Los proyectos de Lovable tienen su propia instancia de Supabase que **no puedes controlar directamente**:
-- No tienes acceso MCP al proyecto Lovable (es de ellos, no tuyo)
-- Las edge functions NO se exportan con `pg_dump` — hay que obtenerlas del repo de GitHub
-- WebFetch puede estar bloqueado para GitHub — usa Chrome browser tools como fallback
-- Las tablas pueden tener columnas que no aparecen en un export CSV selectivo
+- Los proyectos de Lovable tienen su propia instancia de Supabase ("Lovable Cloud") que no controlas directamente — pero el código y el schema viven en el repo de GitHub que el usuario sí controla.
+- Lovable auto-genera un repo con TODO: schema (`supabase/migrations/*.sql`), edge functions (`supabase/functions/*/index.ts`), código React, `.env`, etc.
+- Las edge functions NO se incluyen en `pg_dump` — vienen del repo.
+- **Lovable Cloud NO puede desconectarse** del proyecto Lovable original. Para usar Supabase externo necesitas crear un NUEVO proyecto Lovable que clone el original (ver 0.11–0.12).
+- **`LOVABLE_API_KEY` NO funciona fuera de Lovable Cloud** — funciones que la usen deben reescribirse para usar OpenAI/Anthropic directo (ver 0.13).
+- **Migrar `auth.users` no basta** — también necesitas `auth.identities` y limpiar tokens NULL (ver 0.16).
 
 ---
 
@@ -26,13 +50,34 @@ Los proyectos de Lovable tienen su propia instancia de Supabase que **no puedes 
 
 **Esta fase es para evitar interrumpir al usuario con preguntas que tú mismo puedes responder con las herramientas que tienes.** Antes de pedir cualquier cosa, intenta resolverlo tú primero.
 
-### 0.1 Obtener credenciales del Supabase destino — SOLO
+### 0.0 Verificar acceso a `gh` CLI (path rápido)
 
-Si necesitas el anon/publishable key del Supabase destino, **NO le preguntes al usuario**. Hazlo así:
+```bash
+gh auth status
+```
 
+Si está autenticado y el repo es del usuario, **éste es tu path principal** para todo lo relacionado con código:
+
+```bash
+gh repo view <usuario>/<repo> --json name,isPrivate
+gh repo clone <usuario>/<repo> <destino-local>
+```
+
+Una vez clonado, usas `Read`, `Glob`, `Grep` localmente — muchísimo más rápido que Chrome MCP. Si `gh auth status` falla, pídele al usuario que corra `gh auth login` (ÚNICA cosa que debes pedirle aparte de los secrets).
+
+### 0.1 Obtener credenciales del Supabase destino
+
+**Primera opción (path rápido):** si tienes MCP del proyecto destino:
+```
+mcp__supabase__get_project_url(id=<dest>)
+mcp__supabase__get_publishable_keys(project_id=<dest>)
+```
+Esto te devuelve URL + ambos keys (legacy JWT `eyJ...` y nuevo `sb_publishable_...`). Usa el **legacy anon key (`eyJ...`)** para `VITE_*_KEY` en el repo, porque la mayoría del código React generado por Lovable lo espera en ese formato.
+
+**Segunda opción (Chrome MCP):** si no tienes MCP del destino:
 1. Carga `mcp__Claude_in_Chrome__*` tools (`ToolSearch` con `query: "chrome", max_results: 30`)
-2. Conecta al browser activo del usuario y navega a `https://supabase.com/dashboard/project/<PROJECT_ID>/settings/api-keys`
-3. Click en la tab "Publishable and secret API keys" (la nueva, formato `sb_publishable_xxx`)
+2. Conecta al browser activo y navega a `https://supabase.com/dashboard/project/<PROJECT_ID>/settings/api-keys`
+3. Click en la tab "Publishable and secret API keys"
 4. Extrae el key con `javascript_tool`:
    ```js
    Array.from(document.querySelectorAll('input, code, span, td'))
@@ -41,7 +86,7 @@ Si necesitas el anon/publishable key del Supabase destino, **NO le preguntes al 
    ```
 5. Si solo existe el legacy anon key (formato JWT `eyJ...`), **el filtro de privacidad bloqueará la lectura**. En ese caso usa el publishable key nuevo del primer tab. Si no existe, créalo via "New publishable key".
 
-**Regla:** los keys con formato `sb_publishable_xxx` son SAFE de leer. Los JWT (legacy `eyJ...`) están bloqueados por el filtro de privacidad — no intentes capturarlos.
+**Regla:** los keys con formato `sb_publishable_xxx` son SAFE de leer via Chrome. Los JWT (legacy `eyJ...`) están bloqueados por el filtro de privacidad cuando se lee desde Chrome — pero **sí los puedes leer via MCP `get_publishable_keys`**.
 
 ### 0.2 Identificar source y destination
 
@@ -53,16 +98,19 @@ El proyecto interno de Lovable se accede vía `https://lovable.dev/projects/<UUI
 
 ### 0.4 Acceso al CÓDIGO del repo
 
-Si el repo es **privado**, tres opciones en orden de preferencia:
+**Primera opción (path rápido):** `gh repo clone` (ver 0.0). Funciona con repos privados si `gh` está autenticado.
 
-1. **Mejor:** pedir acceso a la carpeta local con `mcp__cowork__request_cowork_directory` (donde el repo esté clonado o se pueda extraer)
-2. Si la carpeta está vacía, descargar el ZIP via Chrome: navegar a `https://github.com/<owner>/<repo>/archive/refs/heads/main.zip` (la sesión del usuario en Chrome autentica), luego pedirle que extraiga con UN comando de PowerShell:
+**Segunda opción:** si `gh` no está disponible, tres opciones en orden de preferencia:
+1. Pedir acceso a la carpeta local con `mcp__cowork__request_cowork_directory`
+2. Descargar el ZIP via Chrome: navegar a `https://github.com/<owner>/<repo>/archive/refs/heads/main.zip` (la sesión del usuario en Chrome autentica), luego pedirle que extraiga con UN comando de PowerShell:
    ```powershell
    Expand-Archive -Path "$env:USERPROFILE\Downloads\<repo>-main.zip" -DestinationPath "<ruta-mounted>" -Force; Move-Item "<ruta>\<repo>-main\*" "<ruta>\" -Force; Remove-Item "<ruta>\<repo>-main"
    ```
 3. Como último recurso, leer archivos uno por uno via Chrome (extraer `rawLines` del JSON payload de cada blob). **Lento y susceptible al filtro de privacidad** — solo si las anteriores fallan.
 
 ### 0.5 Transferir SQL grande entre tabs (source ↔ destination)
+
+**Solo aplica si no tienes MCP del destino.** Si tienes MCP, salta esto y usa `apply_migration` / `execute_sql` directamente.
 
 Cuando necesites mover SQL grande (>5K chars) entre el SQL editor del origen y el del destino, los tabs no comparten contexto JS. Solución:
 
@@ -113,10 +161,20 @@ El trigger `on_auth_user_created` (en Supabase de Lovable) crea automáticamente
   UPDATE public.profiles SET display_name=%L, avatar_url=%L, age=%L, onboarding_completed=%L WHERE user_id=%L
   ```
 
-### 0.9 Edge functions: deploy via dashboard UI
+### 0.9 Edge functions: deploy directo via MCP (preferido) o via dashboard UI
 
-No hay MCP para deploys cross-org. Usa Chrome para deployar:
+**Primera opción (path rápido):** si tienes MCP del destino:
+```
+mcp__supabase__deploy_edge_function(
+  project_id=<dest>,
+  name=<nombre>,
+  entrypoint_path="index.ts",
+  verify_jwt=<según matriz>,
+  files=[{"name":"index.ts","content":<contenido>}]
+)
+```
 
+**Segunda opción (Chrome MCP):** usa el dashboard si no tienes MCP:
 1. Navegar a `https://supabase.com/dashboard/project/<DEST>/functions/new`
 2. `Ctrl+A` → `Delete` en el editor (clear default code)
 3. Escribir el código TS al clipboard via `mcp__computer-use__write_clipboard`
@@ -126,9 +184,38 @@ No hay MCP para deploys cross-org. Usa Chrome para deployar:
 
 Repetir por cada función. Configurar secrets manualmente después en Settings → Edge Functions → Secrets.
 
-### 0.10 Actualizar `.env` y `config.toml` en repo privado
+#### Matriz de `verify_jwt`
 
-Edición directa via GitHub web UI (chrome MCP):
+| El código de la función... | verify_jwt |
+|---|---|
+| Lee `req.headers.get("Authorization")` y llama `supabaseUser.auth.getUser()` | **true** |
+| Es un webhook público (forms, callbacks de servicios externos) | **false** |
+| Es de setup inicial (ej. `setup-admin`) | **false** |
+| Solo usa secrets sin chequear auth del usuario | depende: frontend autenticado → **true**; endpoint público → **false** |
+
+#### Manejo de UTF-8 en el content
+
+Caracteres como `ñ`, `é`, `í` deben pasarse correctamente:
+
+- **Opción A (preferida):** escapa con `é`, `ñ`, `í` etc. en el JSON del parámetro `files`. Siempre funciona, no depende del shell.
+- **Opción B:** crea un script Python con `json.dumps(..., ensure_ascii=False)` y `encoding='utf-8'`. (`cat | python` puede corromper UTF-8 en Windows.)
+
+### 0.10 Actualizar `.env` y `config.toml` en el repo
+
+**Primera opción (path rápido):** edita los archivos en el clone local + git push:
+```bash
+# Edit .env, supabase/config.toml, src/integrations/**/client.ts localmente
+# Si "Author identity unknown" al commit:
+git config user.email "<email-del-usuario>"
+git config user.name "<github-username>"
+git add .env supabase/config.toml src/integrations/**/client.ts
+git commit -m "chore: migrate Supabase from Lovable to self-hosted ..."
+git push origin main
+```
+
+Lovable recoge los cambios del repo automáticamente.
+
+**Segunda opción:** edición directa via GitHub web UI (Chrome MCP):
 - `https://github.com/<owner>/<repo>/edit/main/.env` → paste nuevas credenciales → Commit
 - `https://github.com/<owner>/<repo>/edit/main/supabase/config.toml` → cambiar `project_id`
 
@@ -141,9 +228,11 @@ Tampoco funcionan estos enfoques:
 - Editar el `.env` en el repo y esperar que Lovable lo respete — Lovable inyecta sus propios valores de Cloud
 - Modificar `client.ts` en el repo — Lovable lo sobrescribe en sus generaciones
 
-### 0.12 ✅ La forma que SÍ funciona: clonar el proyecto Lovable
+**EXCEPCIÓN:** si el proyecto NUNCA estuvo en Lovable Cloud (fue creado conectándose directo a Supabase externo o GitHub desde el inicio), entonces editar `.env`/`client.ts` en el repo SÍ funciona. Es el caso típico de proyectos donde el usuario ya tenía Supabase propio. Verifica esto antes de asumir que necesitas el flujo 0.12.
 
-La estrategia correcta es **crear un nuevo proyecto Lovable que sea una copia del original**, pero conectado al Supabase externo desde el inicio:
+### 0.12 ✅ La forma que SÍ funciona para Lovable Cloud: clonar el proyecto Lovable
+
+Si el proyecto ESTÁ en Lovable Cloud, la estrategia correcta es **crear un nuevo proyecto Lovable que sea una copia del original**, pero conectado al Supabase externo desde el inicio:
 
 1. https://lovable.dev → New project (vacío)
 2. **NO actives** "Use Lovable Cloud" durante setup
@@ -197,7 +286,7 @@ Empieza con la copia y dime cuando esté.
 `LOVABLE_API_KEY` y `https://ai.gateway.lovable.dev` están atados a la infraestructura de Lovable Cloud. Cuando migras a Supabase externo, **estas funciones romperán** si no las reescribes.
 
 Reemplazos típicos:
-- `google/gemini-3-flash-preview` → `gpt-4o-mini` (OpenAI) o `claude-haiku-4-5` (Anthropic)
+- `google/gemini-3-flash-preview` o `google/gemini-2.5-flash` → `gpt-4o-mini` (OpenAI) o `claude-haiku-4-5` (Anthropic)
 - Endpoint `ai.gateway.lovable.dev/v1/chat/completions` → `api.openai.com/v1/chat/completions` o `api.anthropic.com/v1/messages`
 - Header `Authorization: Bearer ${LOVABLE_API_KEY}` → mismo formato pero con la key del provider
 
@@ -205,6 +294,8 @@ Identifica funciones afectadas con grep:
 ```bash
 grep -r "LOVABLE_API_KEY\|ai.gateway.lovable.dev" supabase/functions/
 ```
+
+**Decisión durante migración:** si vas a hacer el path de "clonar proyecto Lovable" (0.12), deja que Lovable reescriba estas funciones según la plantilla del prompt. Si vas a hacer el path "directo via MCP" (sin Lovable nuevo), reescribe tú las funciones antes de hacer `deploy_edge_function`. **Avísale al usuario explícitamente** que estas funciones no funcionarán hasta reescribirlas o hasta que él consiga un `LOVABLE_API_KEY` válido (que probablemente nunca conseguirá fuera de Lovable Cloud).
 
 ### 0.14 Secrets en Lovable son write-only (no se pueden leer)
 
@@ -226,6 +317,7 @@ Monaco SQL editor maneja bien hasta ~150K chars. Más allá puede:
 - INSERTs masivos > 150K chars → particiona por LIMIT/OFFSET (250 filas por chunk)
 - Tablas como `activity_logs` (analytics, suele tener miles de filas) → considera saltarla, raramente afecta funcionalidad de la app
 - Verifica con `SELECT count(*) FROM tabla` después de cada chunk
+- **Si tienes MCP del destino**, `execute_sql` no tiene este límite (puedes pasar SQL más grande sin problemas)
 
 ### 0.16 ⚠️ CRÍTICO: Migrar también `auth.identities` y limpiar tokens NULL
 
@@ -272,43 +364,66 @@ fetch('https://<DEST>.supabase.co/auth/v1/token?grant_type=password', {
 
 Status 200 con `access_token` = todo bien. Status 500 con `"Database error querying schema"` = falta uno de los dos pasos arriba.
 
-### 0.17 Checklist de FASE 0 antes de avanzar
+### 0.17 Atajo: crear admin via `setup-admin` edge function
+
+Muchos proyectos Lovable incluyen una edge function `setup-admin` específicamente para crear el primer admin sin pasar por el flujo de registro normal. Si la encuentras en `supabase/functions/setup-admin/index.ts`, deployala y úsala:
+
+```bash
+curl -s -X POST "https://<DEST>.supabase.co/functions/v1/setup-admin" \
+  -H "Content-Type: application/json" \
+  -H "apikey: <anon-key>" \
+  -d '{"email":"<email-del-usuario>","password":"<password-fuerte>"}'
+```
+
+Espera `{"success":true,"message":"Admin user created","userId":"..."}`. Verifica:
+```sql
+SELECT u.email, ur.role FROM auth.users u
+LEFT JOIN public.user_roles ur ON ur.user_id = u.id
+WHERE u.email = '<email>';
+```
+Debe mostrar el email con role `admin`. **Devuelve credenciales al usuario en el resumen final** — email y password en plain text, una sola vez.
+
+Este atajo evita todo el flujo de migrar `auth.users` + `auth.identities` + cleanup de tokens NULL (sección 0.16) cuando el usuario va a crear data fresca en el destino.
+
+### 0.18 Checklist de FASE 0 antes de avanzar
 
 Antes de empezar la Fase 1, confirma que tienes resuelto:
 
 ```
-□ Identificado source (Lovable interno) y destination (Supabase del usuario)
-□ Acceso a SQL editor de ambos (source via Lovable Cloud → SQL editor; dest via Supabase Dashboard)
-□ Anon/publishable key del destination capturado (formato sb_publishable_)
-□ Acceso al código del repo (carpeta local mounted o ZIP descomprimido)
-□ Chrome MCP cargado y conectado al browser del usuario
-□ Clipboard access concedido (computer-use request_access con clipboardWrite/Read)
+□ Identificado el escenario:
+  - Path A (rápido): MCP del destino + gh auth → todo via MCP/git
+  - Path B (Chrome MCP): sin MCP del destino → todo via Chrome
+  - Mixto: gh para código, Chrome para SQL del source (porque source es Lovable Cloud)
+□ Identificado source (Lovable interno o externo) y destination
+□ Anon/publishable key del destination capturado
+□ Acceso al código del repo (gh clone preferido, ZIP fallback)
+□ Si SOURCE es Lovable Cloud: acceso a SQL editor via lovable.dev
+□ Chrome MCP cargado (solo si necesario para tu path)
+□ Clipboard access concedido (solo si vas a pegar SQL cross-tab)
 □ Identificadas las funciones que usan LOVABLE_API_KEY (necesitan reescritura)
-□ Usuario ha entendido que necesitará crear un PROYECTO LOVABLE NUEVO (no se puede modificar el actual)
+□ Usuario ha entendido si necesita crear PROYECTO LOVABLE NUEVO o no
+□ Plan de admin inicial: setup-admin function o migración de auth.users completa
 ```
 
 ---
 
-## FASE 1 — Inventario pre-migración (origen)
+## FASE 1 — Inventario pre-migración (origen y destino)
 
-Antes de tocar nada, documenta el estado exacto del origen. Esto es tu "verdad de referencia".
+Antes de tocar nada, documenta el estado exacto del origen Y del destino. Esto es tu "verdad de referencia".
 
-### 1.1 Contar filas por tabla
+### 1.1 Inventario del SOURCE — contar filas por tabla
 
-Ejecuta este SQL en el proyecto origen:
+Ejecuta en el origen:
 
 ```sql
-SELECT 
-  schemaname,
-  tablename,
-  n_live_tup AS row_count
+SELECT schemaname, tablename, n_live_tup AS row_count
 FROM pg_stat_user_tables
 ORDER BY tablename;
 ```
 
 Guarda los resultados. Los usarás para verificar al final.
 
-### 1.2 Ver el esquema completo de cada tabla importante
+### 1.2 Inventario del SOURCE — esquema completo de cada tabla
 
 No confíes en el CSV — las columnas pueden estar ocultas. Ejecuta:
 
@@ -322,76 +437,124 @@ ORDER BY ordinal_position;
 
 Repite para cada tabla. **Anota las columnas que no esperabas** — esas son las que se pierden en una migración apresurada.
 
-### 1.3 Listar edge functions del origen
+### 1.3 Inventario del REPO — listar migraciones y edge functions
 
-Si el proyecto de Lovable tiene un repo de GitHub asociado, busca en:
-```
-https://github.com/<usuario>/<repo>/tree/main/supabase/functions/
-```
+Una vez clonado el repo:
 
-Lista todas las carpetas — cada carpeta = una edge function. Anótalas todas.
-
-Si WebFetch está bloqueado para GitHub, usa Chrome browser:
-```
-navega a: https://github.com/<usuario>/<repo>/tree/main/supabase/functions/
-extrae el texto de la página para ver la lista
+```bash
+glob: <repo>/supabase/migrations/*.sql        # migraciones en orden cronológico
+glob: <repo>/supabase/functions/*/index.ts    # edge functions
+read:  <repo>/supabase/config.toml            # project_id origen
+read:  <repo>/.env y .env.example             # vars custom (VITE_META_PIXEL_ID, etc.)
+read:  <repo>/src/integrations/supabase/client.ts
+glob:  <repo>/src/integrations/**/client.ts   # ¿hay más de un cliente Supabase?
 ```
 
-### 1.4 Documentar secrets necesarios
+### 1.4 Inventario del DESTINO
 
-Revisa el código de las edge functions para identificar qué variables de entorno necesitan. Patrón típico:
+Antes de aplicar nada, mira qué ya hay en destino (especialmente si comparte Supabase con otros proyectos del usuario):
+
+```
+mcp__supabase__list_tables(project_id, ["public"], verbose=false)
+mcp__supabase__list_edge_functions(project_id)
+mcp__supabase__list_extensions(project_id)
+mcp__supabase__execute_sql:
+  SELECT routine_name FROM information_schema.routines WHERE routine_schema='public';
+  SELECT trigger_name, event_object_table FROM information_schema.triggers
+    WHERE trigger_schema IN ('public','auth');
+  SELECT typname FROM pg_type WHERE typtype='e'
+    AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname='public');
+```
+
+**Importante:** el destino puede tener tablas/funciones de OTROS proyectos del usuario — **no las toques**. Solo añade lo del proyecto que estás migrando.
+
+### 1.5 Documentar secrets necesarios
+
+```bash
+grep -r "Deno.env.get" <repo>/supabase/functions/
+```
+
+Patrón típico:
 - `RESEND_API_KEY` → funciones de email
-- `LOVABLE_API_KEY` o similar → AI/LLM integrations
+- `LOVABLE_API_KEY` → AI/LLM integrations (ver 0.13 — necesita reescritura)
+- `OPENAI_API_KEY` o `ANTHROPIC_API_KEY` → si ya reescribiste las funciones AI
 - `OPENWEATHER_API_KEY` → clima
-- `APP_URL` → links en emails (default: URL de producción)
+- `APP_URL` → links en emails
 - `DEMO_USER_EMAIL`, `DEMO_USER_PASSWORD` → funciones de demo
+- `STRIPE_SECRET_KEY` → pagos
 
 ---
 
-## FASE 2 — Preparar proyecto destino
+## FASE 2 — Preparar proyecto destino (aplicar schema)
 
 ### 2.0 Cuándo conectar el nuevo proyecto de Lovable
 
 **Conecta el nuevo proyecto de Lovable al nuevo Supabase DESPUÉS de crear el esquema, pero ANTES de migrar los datos.**
 
 El orden es:
-1. Crear el nuevo Supabase y aplicar el esquema (tablas, columnas, RLS) ← estás aquí
-2. **→ Crear nuevo proyecto en Lovable y conectarlo al nuevo Supabase ←**
-3. Migrar los datos
+1. Crear el nuevo Supabase y aplicar el esquema (tablas, columnas, RLS) ← aquí
+2. **→ Crear nuevo proyecto en Lovable (si aplica, ver 0.12) y conectarlo al nuevo Supabase ←**
+3. Migrar los datos (si aplica)
 4. Deployar edge functions y configurar secrets
 
-Por qué en este punto: Lovable necesita el esquema existente para leer las tablas y generar código correcto. Si conectas Lovable a un Supabase vacío (sin tablas), Lovable no puede trabajar. Si esperas hasta tener también los datos, estás trabajando a ciegas sin poder probar nada. Con el esquema listo, puedes ir probando la app mientras migras los datos e identificar problemas en tiempo real.
+Por qué en este punto: Lovable necesita el esquema existente para leer las tablas y generar código correcto. Si conectas Lovable a un Supabase vacío (sin tablas), Lovable no puede trabajar.
 
-### 2.1 Crear el esquema en destino
+### 2.1 Aplicar schema vía MCP `apply_migration` (path rápido)
 
-Usa `apply_migration` para crear todas las tablas con su esquema completo.
+**Estrategia:** lee cada archivo `.sql` de `supabase/migrations/` en orden cronológico (por nombre de archivo) y aplícalo con `apply_migration`. No fusiones todo en un solo bloque — algunas operaciones (sobre todo `ALTER TYPE ... ADD VALUE`) tienen que estar en transacciones separadas de su uso.
 
-Si tienes acceso SQL al origen, exporta el esquema:
-```sql
--- Ejecutar en origen para ver DDL de una tabla
-SELECT pg_get_tabledef('public'::name, 'nombre_tabla'::name, false, 'WITH_OIDS');
+```
+read: <repo>/supabase/migrations/20260128223528_xxx.sql
+mcp__supabase__apply_migration:
+  project_id=<destino>
+  name="prefix_01_<descripción>"   # prefijo del proyecto + número incremental
+  query=<contenido del .sql>
 ```
 
-O usa pg_dump si tienes acceso directo:
-```bash
-pg_dump --schema-only --no-owner --no-acl -n public CONNECTION_STRING
-```
+Agrupa migraciones MUY cortas (1-3 líneas) en una sola call, pero respeta la regla del enum (siguiente sección).
 
-**Importante:** siempre usar `--schema-only` primero para verificar que todas las columnas están antes de migrar datos.
+### 2.2 Reglas críticas al aplicar el schema
 
-### 2.2 Verificar RLS (Row Level Security)
+1. **`ALTER TYPE ... ADD VALUE` no puede usarse en la misma migración donde se añade.** PostgreSQL requiere que el ADD VALUE esté commiteado antes de poder usarse en policies/funciones. Si una migración añade un valor de enum Y otra usa ese valor, ponlas en `apply_migration` calls SEPARADAS.
 
-Las políticas RLS del origen deben recrearse en destino. Verifica:
+2. **Idempotencia para storage buckets:** siempre `ON CONFLICT (id) DO NOTHING`:
+   ```sql
+   INSERT INTO storage.buckets (id, name, public)
+   VALUES ('client-logos', 'client-logos', true)
+   ON CONFLICT (id) DO NOTHING;
+   ```
+
+3. **Idempotencia para policies/triggers:** preferir `DROP POLICY IF EXISTS` + `CREATE POLICY` (las migraciones de Lovable a menudo ya hacen esto).
+
+4. **Conflictos de nombres con otros proyectos:** si el usuario ya tiene tablas en el mismo Supabase (de otros proyectos), verifica si chocan. En la práctica casi nunca chocan. Las funciones genéricas como `update_updated_at_column` no chocan con `set_updated_at` u otras versiones.
+
+5. **Storage policies con nombres genéricos:** si una policy como `"Public read access"` puede existir de otro bucket, dale un sufijo único: `"Public read access email-assets"`. Si no, fallará con duplicate.
+
+6. **`UPDATE` con UUIDs específicos en migraciones:** Lovable a veces incluye `UPDATE deals SET ... WHERE id = '<uuid-específico>'` o `UPDATE user_roles SET role='crm' WHERE user_id='<uuid>'`. En un destino nuevo esos IDs no existen — los UPDATEs son no-op, lo cual está bien. **Aplica la migración tal cual.**
+
+7. **Extensiones:** las migraciones de Lovable suelen incluir `CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;` y `CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;`. Aplícalas — son necesarias para cron jobs y webhooks.
+
+### 2.3 Verificar después de aplicar el schema
+
 ```sql
-SELECT schemaname, tablename, policyname, cmd, qual
-FROM pg_policies
-WHERE schemaname = 'public'
-ORDER BY tablename;
+-- Tablas creadas del proyecto
+SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename;
+
+-- Storage buckets
+SELECT id, name, public FROM storage.buckets;
+
+-- RLS policies
+SELECT schemaname, tablename, policyname, cmd FROM pg_policies
+WHERE schemaname = 'public' ORDER BY tablename;
 ```
 
 ---
 
-## FASE 3 — Migración de datos
+## FASE 3 — Migración de datos (opcional, solo si el usuario lo pide)
+
+**Pregúntate antes de empezar:** ¿el usuario realmente quiere preservar la data del origen, o va a crear data fresca? El caso común con Lovable es "quiero el esquema y functions, pero voy a usar data nueva". Si es eso, **salta esta fase entera** y usa el atajo de `setup-admin` (0.17).
+
+Solo migra datos si el usuario explícitamente lo pide.
 
 ### ⚠️ 3.0 CRÍTICO: Migrar auth.users PRIMERO con UUIDs originales
 
@@ -402,17 +565,9 @@ La solución es insertar los usuarios directamente en `auth.users` usando sus UU
 **Paso 1 — Exportar usuarios del origen:**
 ```sql
 SELECT 
-  id,
-  email,
-  encrypted_password,
-  email_confirmed_at,
-  raw_user_meta_data,
-  raw_app_meta_data,
-  created_at,
-  updated_at,
-  role,
-  aud,
-  instance_id
+  id, email, encrypted_password, email_confirmed_at,
+  raw_user_meta_data, raw_app_meta_data,
+  created_at, updated_at, role, aud, instance_id
 FROM auth.users;
 ```
 
@@ -435,14 +590,14 @@ VALUES (
 );
 ```
 
-El campo `id` debe ser el UUID exacto del origen. Así toda la data posterior (tasks, notes, projects) que tenga ese `user_id` queda correctamente vinculada sin modificar nada más.
+**Paso 3 — También migrar `auth.identities` y limpiar tokens NULL** (sección 0.16). Sin esto el login falla con HTTP 500.
 
-**Regla de oro:** `auth.users` → `profiles` → resto de tablas. Nunca al revés.
+**Regla de oro:** `auth.users` → `auth.identities` → cleanup tokens → `profiles` → resto de tablas. Nunca al revés.
 
 **Verificar antes de continuar:**
 ```sql
--- Confirmar que los UUIDs en auth.users coinciden con los de la data
 SELECT COUNT(*) FROM auth.users; -- debe coincidir con el origen
+SELECT COUNT(*) FROM auth.identities; -- también
 SELECT DISTINCT user_id FROM tasks WHERE user_id NOT IN (SELECT id FROM auth.users);
 -- debe devolver 0 filas
 ```
@@ -459,11 +614,9 @@ SELECT id, title, content FROM notes WHERE user_id = '...'
 SELECT * FROM notes WHERE user_id = '...'
 ```
 
-Para cada tabla, exporta a CSV con `SELECT *`. Si el CSV tiene columnas que no esperabas, es una señal de que el esquema tenía más datos de los que sabías.
-
 ### 3.2 Insertar datos en destino
 
-Por cada tabla, inserta los datos exportados. Orden importante (respetar foreign keys):
+Orden importante (respetar foreign keys):
 1. Tablas sin dependencias primero (profiles, categories, projects)
 2. Luego tablas que referencian a las anteriores (tasks, notes, links)
 3. Al final, tablas junction o de relaciones (friendships, item_shares, etc.)
@@ -478,141 +631,311 @@ Verifica que exportaste TODAS las tablas del inventario de la Fase 1.
 
 ## FASE 4 — Migración de Edge Functions
 
-Las edge functions NO se incluyen en pg_dump. Hay que migrarlas manualmente desde GitHub.
+Las edge functions NO se incluyen en pg_dump. Vienen del repo de GitHub.
 
-### 4.1 Para cada función en la lista del inventario
+### 4.1 Para cada función en `supabase/functions/<nombre>/index.ts`
 
-1. Navega al archivo raw en GitHub:
-   ```
-   https://github.com/<usuario>/<repo>/raw/refs/heads/main/supabase/functions/<nombre>/index.ts
-   ```
-
-2. Si WebFetch está bloqueado, usa Chrome browser:
-   ```
-   navega a la URL → get_page_text → copia el código
-   ```
-
-3. Despliega con `deploy_edge_function`:
-   - `verify_jwt: true` en casi todos los casos
-   - `verify_jwt: false` solo si la función original lo tenía así, o si implementa su propia auth
+```
+read: <repo>/supabase/functions/<nombre>/index.ts
+mcp__supabase__deploy_edge_function:
+  project_id=<destino>
+  name=<nombre>
+  entrypoint_path="index.ts"
+  verify_jwt=<según matriz en 0.9>
+  files=[{"name":"index.ts","content":<contenido>}]
+```
 
 ### 4.2 Funciones que usan AI (LOVABLE_API_KEY)
 
-El patrón de Lovable usa su propio AI Gateway:
-```
-URL: https://ai.gateway.lovable.dev/v1/chat/completions
-Modelos: google/gemini-2.5-flash, google/gemini-3-flash-preview
-Header: Authorization: Bearer ${LOVABLE_API_KEY}
+⚠️ **NO funcionan fuera de Lovable Cloud** (ver 0.13). Decide:
+
+**Opción A:** mantén el código tal cual y deja al usuario el problema. No es mi recomendación, pero ahorra tiempo si vas a usar el flow 0.12 (clonar proyecto Lovable, donde Lovable reescribe estas funciones).
+
+**Opción B (recomendada si no usas 0.12):** reescribe ANTES de hacer deploy:
+
+```ts
+// ANTES
+const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  headers: { Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}` },
+  body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: [...] })
+});
+
+// DESPUÉS (OpenAI)
+const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+  headers: { Authorization: `Bearer ${Deno.env.get("OPENAI_API_KEY")}` },
+  body: JSON.stringify({ model: "gpt-4o-mini", messages: [...] })
+});
 ```
 
-No reemplaces con OpenAI — usa el código original tal como está.
+**Avisa al usuario** en el reporte final qué funciones requieren `OPENAI_API_KEY` (u otra) y cuáles ya están listas.
 
-### 4.3 Función `workflow-runs`
+### 4.3 Función `workflow-runs` o similares fantasma
 
 Si aparece en logs de 404 pero no en el repo de GitHub, probablemente fue eliminada. No la recrear.
 
----
+### 4.4 Verificar deploy
 
-## FASE 5 — Configurar Secrets
-
-En el proyecto destino, configura todos los secrets identificados en el inventario.
-
-En Supabase Dashboard:
-**Settings → Edge Functions → Secrets**
-
-O via MCP si está disponible. Los secrets mínimos necesarios para una app típica de Lovable:
-- `RESEND_API_KEY`
-- `LOVABLE_API_KEY` (o equivalente)
-- `APP_URL` (URL de producción, ej: `https://tuapp.com`)
-- Cualquier API key de terceros (weather, maps, etc.)
+```
+mcp__supabase__list_edge_functions(project_id)
+```
+Todas deben aparecer con `status: "ACTIVE"`.
 
 ---
 
-## FASE 6 — Verificación post-migración
+## FASE 5 — Actualizar repo (URL/key + hardcoded fallback)
 
-**No declares la migración completa hasta pasar esta fase.**
+**Esta fase siempre se hace.** Lovable se conecta a GitHub, así que basta con pushear cambios al repo y Lovable los recoge automáticamente.
 
-### 6.1 Comparar conteos de filas
+### 5.1 Obtener URL y anon key del destino
 
-Ejecuta el mismo SQL de inventario en el destino y compara con el origen:
-
-```sql
-SELECT 
-  schemaname,
-  tablename,
-  n_live_tup AS row_count
-FROM pg_stat_user_tables
-ORDER BY tablename;
+```
+mcp__supabase__get_project_url(id=<destino>)
+mcp__supabase__get_publishable_keys(project_id=<destino>)
 ```
 
-Cualquier diferencia es un problema. Investígalo antes de continuar.
+Usa la **legacy anon key** (formato JWT `eyJ...`) para los `VITE_*_KEY` porque es la que el código React generado por Lovable espera.
 
-### 6.2 Verificar columnas con datos especiales
+### 5.2 Actualizar `.env`
 
-Si una tabla tiene columnas de tipo enum, JSON, o con valores específicos por negocio (como `theme` en notas, `status` en tareas), verifica que los datos se migraron correctamente:
-
-```sql
--- Ejemplo: verificar distribución de valores en una columna
-SELECT theme, COUNT(*) FROM notes GROUP BY theme ORDER BY count DESC;
+```
+VITE_SUPABASE_PROJECT_ID="<nuevo-project-id>"
+VITE_SUPABASE_PUBLISHABLE_KEY="<nueva-anon-key>"
+VITE_SUPABASE_URL="https://<nuevo-project-id>.supabase.co"
 ```
 
-Si aparecen valores NULL donde no debería haberlos, es señal de que esa columna se perdió en el export.
+Si el `.env` tiene vars secundarias (ej. `VITE_BOT_SUPABASE_*` para otro proyecto Supabase que ahora se consolida), apúntalos al mismo destino. Mantén vars custom como `VITE_META_PIXEL_ID` sin tocar.
 
-### 6.3 Verificar edge functions activas
+### 5.3 Actualizar `supabase/config.toml`
 
-Tras el deploy, verifica que las funciones están en estado `ACTIVE` en:
-**Supabase Dashboard → Edge Functions**
+```toml
+project_id = "<nuevo-project-id>"
+```
 
-O via MCP: `list_edge_functions` y confirma que todas las del inventario aparecen.
+### 5.4 Hardcodear fallback en `src/integrations/supabase/client.ts`
 
-### 6.4 Test de funciones críticas
+**Esto es importante.** Lovable a veces no inyecta las vars de `.env` correctamente. Para que la app funcione SIEMPRE:
 
-Prueba manualmente al menos estas funciones en la app:
+```ts
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://<nuevo>.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "<nueva-anon-key>";
+```
+
+Aplica el mismo patrón a cualquier otro cliente Supabase que encuentres (`glob: src/integrations/**/client.ts`).
+
+### 5.5 Verificar que no quedan referencias al project_id viejo
+
+```bash
+grep -r "<project-id-viejo>" <repo>/src <repo>/supabase
+```
+No debería quedar ninguna (excepto en migraciones históricas, donde está bien).
+
+### 5.6 Commit y push
+
+Si `git commit` falla con "Author identity unknown":
+```bash
+git config user.email "<email-del-usuario>"    # del CLAUDE.md o git log previo
+git config user.name "<github-username>"
+```
+
+```bash
+git add .env src/integrations/**/client.ts supabase/config.toml
+git commit -m "chore: migrate Supabase from Lovable (<old-id>) to self-hosted (<new-id>)
+
+- Update .env to point to <new-id>.supabase.co
+- Update supabase/config.toml project_id
+- Add hardcoded fallback URLs in client.ts to ensure connection
+  works even if env vars are not injected
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
+git push origin main
+```
+
+Lovable recoge el cambio del repo automáticamente.
+
+---
+
+## FASE 6 — Crear admin inicial
+
+Si el proyecto tiene `setup-admin` edge function (ver 0.17), úsala:
+
+```bash
+curl -s -X POST "https://<DEST>.supabase.co/functions/v1/setup-admin" \
+  -H "Content-Type: application/json" \
+  -H "apikey: <anon-key>" \
+  -d '{"email":"<email>","password":"<password-fuerte>"}'
+```
+
+Verifica con SQL que tenga role `admin`. Devuelve credenciales al usuario en el reporte final.
+
+Si NO tiene `setup-admin`, crea el admin manualmente:
+```sql
+-- 1. Insertar en auth.users (con UUID generado o el del usuario si lo tienes)
+INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, ...) VALUES (...);
+-- 2. Insertar en auth.identities
+-- 3. Limpiar tokens NULL (sección 0.16)
+-- 4. Insertar role admin en user_roles
+INSERT INTO public.user_roles (user_id, role) VALUES ('<uuid>', 'admin');
+```
+
+O crea el user vía la API de Supabase Auth con `supabase.auth.admin.createUser({email, password, email_confirm: true})` desde un script Node.
+
+---
+
+## FASE 7 — Configurar Secrets (manual por el usuario)
+
+Lista los secrets identificados en 1.5 y dile al usuario que los configure en:
+**Supabase Dashboard → Settings → Edge Functions → Secrets**
+
+Si reescribiste funciones para usar OpenAI/Anthropic, incluye `OPENAI_API_KEY` o `ANTHROPIC_API_KEY` (no `LOVABLE_API_KEY`).
+
+---
+
+## FASE 8 — Verificación post-migración
+
+```sql
+-- Tablas
+SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename;
+
+-- Conteos (si migraste data)
+SELECT schemaname, tablename, n_live_tup FROM pg_stat_user_tables;
+
+-- Storage buckets
+SELECT id, name, public FROM storage.buckets;
+
+-- Edge functions activas
+-- mcp__supabase__list_edge_functions(project_id)
+
+-- Advisors de seguridad
+-- mcp__supabase__get_advisors(project_id, type='security')
+```
+
+Si `get_advisors` reporta warnings de `function_search_path_mutable` en funciones que tú creaste, corrígelas con `SET search_path TO 'public'`. Las warnings de funciones preexistentes (de otros proyectos del usuario) ignóralas.
+
+Test manual mínimo:
 - Login / autenticación
-- Crear y leer datos básicos (tareas, notas, etc.)
-- Cualquier función que use AI (genera pregunta, optimiza texto, etc.)
+- Crear y leer datos básicos
+- Cualquier función AI (genera, optimiza, clasifica)
 - Envío de emails si aplica
+
+---
+
+## FASE 9 — Reporte final al usuario
+
+Estructura del reporte (en español, directo):
+
+```
+✅ Migración completa
+
+1. Schema: N tablas, M enums, K buckets, X funciones, triggers — todo en destino.
+2. Edge functions deployadas (Y funciones, todas ACTIVE).
+   ⚠️ Funciones que requieren reescritura/secrets: <lista>
+3. Usuario admin creado:
+   - Email: <email>
+   - Password: <password>
+4. Repo actualizado y pusheado (commit <sha>).
+   Lovable lo recogerá automáticamente.
+
+⚠️ Lo único que requiere TU mano (no puedo hacerlo vía MCP):
+Configurar secrets en Supabase Dashboard → Settings → Edge Functions → Secrets:
+- RESEND_API_KEY (para email)
+- OPENAI_API_KEY o ANTHROPIC_API_KEY (si reescribiste las funciones AI)
+- <otros secrets identificados>
+
+(Si el proyecto estaba en Lovable Cloud y necesitas nuevo proyecto Lovable, ver guía 0.12)
+```
+
+**NO incluyas pasos que ya hiciste.** No digas "actualiza el .env" si ya lo actualizaste y pusheaste.
 
 ---
 
 ## Problemas frecuentes y soluciones
 
 | Problema | Causa | Solución |
-|----------|-------|----------|
-| Columnas aparecen como NULL o vacías | Export CSV fue con columnas selectivas, no `SELECT *` | Re-exportar con `SELECT *` y actualizar registros |
-| "Failed to send request to Edge Function" | Función no deployada o secret faltante | Verificar lista de funciones y secrets |
-| Subcategorías muestran "Sin categoría" | Columna `theme`/`category` no incluida en export | Export correcto + UPDATE masivo con los valores correctos |
-| 404 en funciones que no existen | Función obsoleta en el código del frontend | Ignorar si no está en el repo de GitHub |
-| GitHub bloqueado con WebFetch | Proxy de red bloquea raw.githubusercontent.com | Usar Chrome browser tools: `navigate` + `get_page_text` |
-| "Permission denied" al acceder MCP del proyecto Lovable | El proyecto Lovable no es tuyo, es de ellos | Obtener código desde GitHub, no via MCP |
+|---|---|---|
+| WebFetch a GitHub da 404 | Repo privado | Usa `gh repo clone` autenticado |
+| `git commit` falla con "Author identity unknown" | Git config local vacío | `git config user.email` + `git config user.name` |
+| `ALTER TYPE ADD VALUE` falla en mismo migration | PostgreSQL requiere commit antes de usar | Separar en dos `apply_migration` calls |
+| Edge function deploy falla con UTF-8 corrupto | `cat \| python` corrompe en Windows | Escapar manualmente con `\u00XX` o usar `json.dumps(ensure_ascii=False, encoding='utf-8')` |
+| Lovable no toma la nueva URL después de push | Cache o env vars no inyectadas | Hardcodear fallback en `client.ts` (5.4) |
+| Edge function da 401 | Falta secret configurado | Avisar al usuario que configure los secrets |
+| Bucket ya existe error | Bucket de otro proyecto en mismo Supabase | `ON CONFLICT (id) DO NOTHING` en `INSERT INTO storage.buckets` |
+| Storage policy duplicada error | Nombre genérico que choca | Renombrar con sufijo único (`"Public read access email-assets"`) |
+| Función edge `workflow-runs` da 404 en logs | Función obsoleta del frontend | Ignorar si no está en el repo |
+| Login da HTTP 500 "Database error querying schema" | Falta `auth.identities` o tokens NULL | Ver sección 0.16 |
+| Columnas aparecen como NULL o vacías | Export con columnas selectivas | Re-exportar con `SELECT *` y UPDATE masivo |
+| AI function da error de auth | `LOVABLE_API_KEY` no funciona fuera de Lovable | Reescribir con OpenAI/Anthropic (0.13) |
+| Lovable sobrescribe `client.ts` o `.env` | Proyecto en Lovable Cloud, sigue conectado al interno | Crear NUEVO proyecto Lovable (0.12) |
+| Trigger duplica filas en `profiles` al migrar | `on_auth_user_created` trigger | Usar `ON CONFLICT DO NOTHING` o UPDATE en lugar de INSERT (0.8) |
+| EPERM al escribir SKILL.md | Archivo read-only por skill system | `chmod u+w SKILL.md` antes de editar, `chmod u-w` después |
+| SQL editor cuelga con paste >150K chars | Límite del Monaco editor | Particionar en chunks de 250 filas / usar MCP `execute_sql` |
 
 ---
 
-## Checklist rápido de migración
+## Checklist completo (versión autónoma)
 
 ```
-PRE-MIGRACIÓN
-□ Inventario de tablas con conteo de filas
-□ Esquema completo de cada tabla (todas las columnas)
-□ Lista de todas las edge functions
-□ Lista de todos los secrets necesarios
-□ Identificar orden de inserción (foreign keys)
+FASE 0 — Setup
+□ gh auth status OK (path rápido) o Chrome MCP cargado (path Chrome)
+□ Acceso al código del repo (clone o ZIP)
+□ Anon key del destino capturado (sb_publishable_xxx o legacy eyJ...)
+□ Identificado si el proyecto está en Lovable Cloud (0.11) o externo
+□ Si Lovable Cloud: usuario sabe que necesita crear NUEVO proyecto Lovable (0.12)
+□ Funciones con LOVABLE_API_KEY identificadas (0.13)
 
-MIGRACIÓN
-□ Crear esquema en destino (con TODAS las columnas)
-□ ⚠️ Insertar auth.users PRIMERO con UUIDs originales
-□ Verificar que no hay user_id huérfanos antes de continuar
-□ Exportar datos con SELECT * (no selectivo)
-□ Insertar en orden correcto (respetando FK)
-□ Verificar subtablas y tablas secundarias
-□ Obtener código de edge functions desde GitHub
-□ Deployar todas las edge functions
-□ Configurar todos los secrets
+FASE 1 — Inventario
+□ Migraciones en supabase/migrations/ listadas en orden cronológico
+□ Edge functions en supabase/functions/ listadas
+□ project_id origen (supabase/config.toml)
+□ .env leído (vars custom identificadas)
+□ src/integrations/**/client.ts identificados (uno o varios)
+□ Estado del destino: list_tables, list_edge_functions, list_extensions
+□ Triggers/funciones del destino (conflictos potenciales)
+□ Secrets necesarios (grep Deno.env.get)
 
-POST-MIGRACIÓN
-□ Comparar conteos de filas origen vs destino
-□ Verificar columnas con valores especiales
-□ Confirmar edge functions en estado ACTIVE
-□ Test manual de funciones críticas en la app
-□ Verificar RLS policies
+FASE 2 — Schema
+□ Cada migración aplicada en orden cronológico con apply_migration
+□ ALTER TYPE ADD VALUE en transacciones separadas de su uso
+□ Storage buckets con ON CONFLICT (id) DO NOTHING
+□ Policies genéricas renombradas con sufijo único
+□ Extensiones pg_cron + pg_net si las usa el proyecto
+□ Verificación: SELECT tablename FROM pg_tables
+
+FASE 3 — Datos (si aplica)
+□ auth.users insertado con UUIDs originales
+□ auth.identities insertado (CRÍTICO, ver 0.16)
+□ Tokens NULL limpiados a '' (CRÍTICO, ver 0.16)
+□ Login probado via API directo (status 200)
+□ profiles + resto de tablas en orden de FK
+□ Conteos origen vs destino comparados
+
+FASE 4 — Edge functions
+□ Cada función deployada con verify_jwt correcto (matriz 0.9)
+□ Funciones con LOVABLE_API_KEY reescritas o flag al usuario
+□ UTF-8 manejado (escape \uXXXX o ensure_ascii=False)
+□ list_edge_functions → todas ACTIVE
+
+FASE 5 — Repo
+□ .env actualizado con nuevo project_id/URL/key
+□ supabase/config.toml actualizado
+□ client.ts con hardcoded fallback (todos los clientes)
+□ grep del project_id viejo → 0 resultados en src/
+□ git config user.email/name si hace falta
+□ git commit + push origin main
+
+FASE 6 — Admin
+□ setup-admin llamada vía curl (o creación manual)
+□ Verificación SQL: role admin asignado
+
+FASE 7 — Secrets
+□ Lista de secrets entregada al usuario (no la puedes configurar tú)
+
+FASE 8 — Verificación
+□ Tablas, edge functions, buckets verificados
+□ get_advisors → fixes en funciones nuevas si search_path mutable
+□ Login y data básica probados
+
+FASE 9 — Reporte
+□ Resumen al usuario con admin creds + lista de secrets a configurar
+□ Funciones que requieren reescritura mencionadas explícitamente
+□ NO incluir pasos que ya hiciste
 ```
