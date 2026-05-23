@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-marketplace.json",
+  "name": "kott-skills",
+  "owner": {
+    "name": "Hector Kott",
+    "url": "https://github.com/scrumexpress-cell"
+  },
+  "plugins": [
+    {
+      "name": "cotizacion-saas",
+      "source": "./skills/cotizacion-saas",
+      "description": "Genera cotizaciones profesionales de software, plataformas SaaS o proyectos de desarrollo a la medida."
+    },
+    {
+      "name": "granolanotes-to-mvp",
+      "source": "./skills/granolanotes-to-mvp",
+      "description": "Convierte un transcript de discovery call en plan tecnico + plan de demo para arrancar un MVP nuevo."
+    },
+    {
+      "name": "granolanotes-to-requirements",
+      "source": "./skills/granolanotes-to-requirements",
+      "description": "Convierte un transcript de reunion en cambios reales aplicados al sistema existente (Supabase + frontend), sin duplicar trabajo."
+    },
+    {
+      "name": "lovable-to-supabase",
+      "source": "./skills/lovable-to-supabase",
+      "description": "Guia completa para migrar un proyecto de Supabase hosteado en Lovable a una instancia propia."
+    }
+  ]
+}
