@@ -1,9 +1,0 @@
-{
-  "name": "lovable-to-supabase",
-  "version": "1.0.0",
-  "description": "Guia completa paso a paso para migrar un proyecto de Supabase hosteado en Lovable a una instancia propia de Supabase. Incluye checklist pre-migracion, exportacion correcta, migracion de edge functions desde GitHub, configuracion de secrets y verificacion post-migracion.",
-  "author": {
-    "name": "Hector Kott"
-  },
-  "keywords": ["supabase", "lovable", "migration", "self-host", "espanol"]
-}

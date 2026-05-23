@@ -1,9 +1,0 @@
-{
-  "name": "cotizacion-saas",
-  "version": "1.0.0",
-  "description": "Genera cotizaciones profesionales de software, plataformas SaaS o proyectos de desarrollo a la medida. Incluye estructura win-win, modelo de suscripcion, penalizaciones de salida anticipada y mejoras a cotizaciones existentes.",
-  "author": {
-    "name": "Hector Kott"
-  },
-  "keywords": ["cotizacion", "saas", "pricing", "propuesta", "espanol"]
-}

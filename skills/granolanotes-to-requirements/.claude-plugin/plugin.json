@@ -1,9 +1,0 @@
-{
-  "name": "granolanotes-to-requirements",
-  "version": "1.0.0",
-  "description": "Convierte un transcript de reunion en cambios reales aplicados al sistema (Supabase + repo). Actua como product manager senior: identifica pain points, los desglosa en user stories [CLIENTE]/[PM-IA], detecta el estado actual del sistema y AUTO-EJECUTA migraciones idempotentes + commits a main. Termina con resumen wow-effect para el cliente.",
-  "author": {
-    "name": "Hector Kott"
-  },
-  "keywords": ["product-manager", "transcript", "supabase", "auto-execute", "requirements", "espanol"]
-}

@@ -7,24 +7,9 @@
   },
   "plugins": [
     {
-      "name": "cotizacion-saas",
-      "source": "./skills/cotizacion-saas",
-      "description": "Genera cotizaciones profesionales de software, plataformas SaaS o proyectos de desarrollo a la medida."
-    },
-    {
-      "name": "granolanotes-to-mvp",
-      "source": "./skills/granolanotes-to-mvp",
-      "description": "Convierte un transcript de discovery call en plan tecnico + plan de demo para arrancar un MVP nuevo."
-    },
-    {
-      "name": "granolanotes-to-requirements",
-      "source": "./skills/granolanotes-to-requirements",
-      "description": "Convierte un transcript de reunion en cambios reales aplicados al sistema existente (Supabase + frontend), sin duplicar trabajo."
-    },
-    {
-      "name": "lovable-to-supabase",
-      "source": "./skills/lovable-to-supabase",
-      "description": "Guia completa para migrar un proyecto de Supabase hosteado en Lovable a una instancia propia."
+      "name": "kott-skills",
+      "source": "./",
+      "description": "Skills personales de Hector Kott: cotizacion SaaS, discovery → MVP, requirements → auto-execute en sistema vivo, y migracion Lovable → Supabase. Instalando este plugin obtienes los 4 skills."
     }
   ]
 }

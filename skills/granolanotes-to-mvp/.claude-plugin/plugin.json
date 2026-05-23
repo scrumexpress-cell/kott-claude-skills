@@ -1,9 +1,0 @@
-{
-  "name": "granolanotes-to-mvp",
-  "version": "1.0.0",
-  "description": "Convierte el transcript completo de una primera reunion de descubrimiento con cliente nuevo en dos documentos accionables: plan tecnico para el equipo y plan de demo para la siguiente reunion. NO ejecuta nada — solo planea. MVP hibrido (1 flujo profundo + esqueletos).",
-  "author": {
-    "name": "Hector Kott"
-  },
-  "keywords": ["product-manager", "discovery", "mvp", "transcript", "demo-plan", "espanol"]
-}

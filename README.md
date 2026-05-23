@@ -17,32 +17,40 @@ Marketplace personal de skills de Claude Code, sincronizados entre máquinas ví
 
 ```
 /plugin marketplace add scrumexpress-cell/kott-claude-skills
+/plugin install kott-skills@kott-skills
 ```
 
-Después instala los skills que quieras (uno por uno):
-
-```
-/plugin install cotizacion-saas@kott-skills
-/plugin install granolanotes-to-mvp@kott-skills
-/plugin install granolanotes-to-requirements@kott-skills
-/plugin install lovable-to-supabase@kott-skills
-```
+Con eso obtienes los 4 skills en una sola instalación.
 
 O desde terminal:
 
 ```bash
 claude plugin marketplace add scrumexpress-cell/kott-claude-skills
-claude plugin install cotizacion-saas@kott-skills
+claude plugin install kott-skills@kott-skills
 ```
+
+### Cómo invocarlos
+
+Cada skill queda namespaceado bajo `kott-skills:`:
+
+```
+/kott-skills:cotizacion-saas
+/kott-skills:granolanotes-to-mvp
+/kott-skills:granolanotes-to-requirements
+/kott-skills:lovable-to-supabase
+```
+
+(También se auto-activan cuando el contexto del chat coincide con su descripción — no siempre hay que invocarlos con slash.)
 
 ### Actualizar a la última versión
 
-Cada commit a `main` cuenta como nueva versión. Para jalar cambios:
+Cada commit a `main` cuenta como nueva versión:
 
 ```
 /plugin marketplace update kott-skills
-/plugin install <skill-name>@kott-skills
 ```
+
+Reinicia Claude Code después y los cambios quedan activos.
 
 ## Flujo end-to-end con estos skills
 
@@ -69,18 +77,11 @@ Los skills de este marketplace **NO funcionan en Claude.ai chat web** — solo e
 ```
 kott-claude-skills/
 ├── .claude-plugin/
-│   └── marketplace.json       ← Manifest del marketplace
+│   ├── marketplace.json       ← Manifest del marketplace
+│   └── plugin.json            ← Manifest del plugin (repo = plugin)
 └── skills/
-    ├── cotizacion-saas/
-    │   ├── .claude-plugin/plugin.json
-    │   └── SKILL.md
-    ├── granolanotes-to-mvp/
-    │   ├── .claude-plugin/plugin.json
-    │   └── SKILL.md
-    ├── granolanotes-to-requirements/
-    │   ├── .claude-plugin/plugin.json
-    │   └── SKILL.md
-    └── lovable-to-supabase/
-        ├── .claude-plugin/plugin.json
-        └── SKILL.md
+    ├── cotizacion-saas/SKILL.md
+    ├── granolanotes-to-mvp/SKILL.md
+    ├── granolanotes-to-requirements/SKILL.md
+    └── lovable-to-supabase/SKILL.md
 ```

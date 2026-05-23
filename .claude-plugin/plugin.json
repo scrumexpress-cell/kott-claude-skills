@@ -1,0 +1,12 @@
+{
+  "name": "kott-skills",
+  "version": "1.1.0",
+  "description": "Skills personales de Hector Kott para Claude Code y Cowork: cotizacion SaaS, discovery → MVP, requirements → auto-execute, y migracion Lovable → Supabase.",
+  "author": {
+    "name": "Hector Kott",
+    "url": "https://github.com/scrumexpress-cell"
+  },
+  "homepage": "https://github.com/scrumexpress-cell/kott-claude-skills",
+  "license": "MIT",
+  "keywords": ["product-manager", "supabase", "lovable", "saas", "espanol", "transcript"]
+}
