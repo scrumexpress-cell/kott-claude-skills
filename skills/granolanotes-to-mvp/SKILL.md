@@ -428,32 +428,49 @@ Para cada cosa que se te ocurra pedir, pásala por estos **cinco** filtros. Si a
 
 #### PARTE 1 — Lo que escuché (pain points capturados)
 
-- Resume 2-4 pains del cliente **usando sus palabras o muy cerca**. NO los inventes; tómalos del transcript.
-- Si el cliente repitió un pain varias veces o lo describió con detalle, INCLÚYELO. Es la señal más fuerte de "te escuché".
-- Si hubo un pain que el gatekeeper técnico mencionó específicamente, ese también va — no solo los del decisor.
+- **Apunta a 5 pains.** Menos se siente superficial; más se vuelve lista de mercado y no enfoque. Si el transcript no da para 5, pon 4 — nunca rellenes con pains inventados.
+- Resume cada pain del cliente **usando sus palabras o muy cerca**. NO los inventes; tómalos del transcript.
+- **Ordénalos por impacto compuesto**, NO por orden en que aparecieron en la conversación. El criterio de ordenamiento es:
+  1. **Frecuencia** — cuántas veces el cliente regresó al tema en el transcript
+  2. **Prioridad del decisor** — si el decisor lo nombró como crítico
+  3. **Detalle de descripción** — el cliente que describe un pain con detalle (escenarios, ejemplos, jerga interna) le importa más que el que solo lo menciona
+  4. **Cuántos asistentes lo nombraron** — si el decisor Y el gatekeeper técnico lo mencionaron, sube prioridad
+- El **#1 debe ser el pain más central / repetido / dolor real**. El #5 puede ser uno que solo se mencionó una vez pero con detalle.
+- Si hubo un pain que el gatekeeper técnico describió en detalle pero el decisor no, ese también va — no solo los del decisor.
 - Esta sección NO pide nada. Solo demuestra escucha y enmarca el demo.
 
 Plantilla:
 ```
-De la conversación me quedaron muy claros [N] dolores que voy a atacar en el demo:
+De la conversación me quedaron muy claros [N] dolores que voy a atacar en el demo, ordenados por lo que percibí que más les pega:
 
-1. **[Pain en 3-5 palabras]** — [una frase parafraseando con detalle de su contexto]
+1. **[Pain en 3-5 palabras]** — [una frase parafraseando con detalle de su contexto, usando 1-2 palabras textuales del transcript]
 2. **[Pain]** — [una frase]
 3. **[Pain]** — [una frase]
+4. **[Pain]** — [una frase]
+5. **[Pain]** — [una frase]
 ```
 
-#### PARTE 2 — Lo que necesito de ustedes para armar el demo
+**Antes de cerrar PARTE 1, pasa el siguiente filtro de cobertura:**
+- ¿Cubrí el pain que más se mencionó? (sí/no)
+- ¿Cubrí los pains que el decisor priorizó verbalmente? (sí/no)
+- ¿Cubrí el pain más diferenciante (el que NINGÚN competidor genérico atacaría)? (sí/no)
+- ¿Cubrí algún pain que el gatekeeper técnico describió con detalle aunque el decisor no? (sí/no)
+
+Si alguno responde "no", revisa el transcript de nuevo antes de continuar.
+
+#### PARTE 2 — Lo que necesito para armar el demo
 
 - Solo pedidos que cumplan los 5 filtros pre-flight.
 - Máximo 3 categorías, máximo 4 bullets cada una.
 - Cada bullet debe ser **mínimo viable para el demo**, no "ideal para el proyecto".
+- **NO dirijas pedidos a personas específicas.** No conoces la jerarquía interna del cliente, no sabes quién es jefe de quién, no sabes a quién le delegan qué. Asumir crea fricción y suena presuntuoso. En su lugar, formula los pedidos **al equipo en general** o "a quien tenga la info más a la mano". La excepción única: si el cliente explícitamente dijo en el transcript "yo te mando X" (ej: "Samuel quedó de mandar screenshots"), ahí sí puedes referenciarlo, pero como recordatorio amable, no como asignación.
 
 Plantilla:
 ```
 Para armarles algo que se sienta como SU operación (no un demo genérico), me ayudaría:
 
 ### [Categoría 1]
-- [pedido mínimo viable para demo]
+- [pedido mínimo viable para demo — formulado en plural o impersonal]
 - [pedido]
 
 ### [Categoría 2]
@@ -461,9 +478,21 @@ Para armarles algo que se sienta como SU operación (no un demo genérico), me a
 - [pedido]
 ```
 
+**Formas correctas de redactar pedidos:**
+- ✅ "Si me pueden mandar screenshots de los 3 módulos top..."
+- ✅ "Quien tenga más a la mano la lista de preguntas que quisieran hacerle al sistema..."
+- ✅ "Me ayudaría tener 2-3 casos históricos donde un lote salió mal..."
+
+**Formas incorrectas:**
+- ❌ "Samuel: mándame los screenshots" (asume que Samuel reporta a Héctor)
+- ❌ "Rodrigo: mándame la lista de preguntas" (asignación unilateral)
+- ❌ "Que [persona X] coordine con [persona Y]" (no sabes si X manda sobre Y)
+
 #### PARTE 3 — Acuerdos y pendientes (al final, no al inicio)
 
-Esta sección lista QUÉ HACE CADA QUIEN para llegar al demo. Es lo que cierra el email.
+Esta sección lista QUÉ HACE CADA LADO para llegar al demo. Es lo que cierra el email.
+
+**Regla:** los compromisos del lado del cliente se redactan en plural / impersonal ("de su lado: mandar X"), NO asignados a personas individuales. Sin embargo, si en el transcript el cliente nombró explícitamente quién haría algo, puedes mencionarlo como recordatorio suave entre paréntesis.
 
 Plantilla:
 ```
@@ -472,12 +501,12 @@ Plantilla:
 ### Acuerdos y siguientes pasos
 
 **De su lado:**
-- [acción concreta — ej. "Samuel me manda los screenshots de los 3 módulos top"]
-- [acción concreta]
+- [acción concreta — ej. "mandar screenshots de los 3 módulos más usados de Nexus"]
+- [acción concreta — ej. "compartir 5-10 preguntas reales para el agente y 2-3 casos históricos"]
 
 **De mi lado:**
 - [acción concreta — ej. "armo demo navegable con los pains de arriba"]
-- [acción concreta — ej. "agendamos próxima sesión de 30-45 min para presentárselo"]
+- [acción concreta — ej. "les aviso cuando esté listo para agendar 30-45 min de presentación"]
 
 Si prefieren llamada corta de 20 min para platicar esto en vez de escribir, dígame y la agendo.
 ```
@@ -498,10 +527,13 @@ Si prefieren llamada corta de 20 min para platicar esto en vez de escribir, díg
 ### 7.5 Checklist específico antes de entregar el email
 
 - [ ] Pasé cada bullet por los 5 filtros pre-flight (incluido el de "demo vs ejecución")
-- [ ] PARTE 1 (pains) tiene 2-4 dolores capturados con palabras cercanas al transcript
-- [ ] Incluí los pains que el cliente describió con más detalle, no solo los superficiales
+- [ ] PARTE 1 (pains) tiene **5 pains** (o 4 si el transcript no daba para más), ordenados por impacto compuesto
+- [ ] Cubrí el pain más mencionado, el del decisor, el más diferenciante y al menos uno descrito en detalle por el gatekeeper técnico
+- [ ] Incluí los pains que el cliente describió con detalle, no solo los superficiales
 - [ ] PARTE 2 (pedidos) solo contiene info necesaria para construir el demo, NO para arrancar proyecto
+- [ ] **Ningún pedido en PARTE 2 está dirigido a una persona específica** (todos en plural / impersonal)
 - [ ] PARTE 3 (acuerdos) está al final, no mezclada con los pedidos
+- [ ] **PARTE 3 lado del cliente no asigna acciones a personas individuales** (salvo recordatorio suave si el cliente lo nombró en transcript)
 - [ ] El destinatario es el decisor, no un random
 - [ ] Verifiqué que NO repito ningún punto de la lista "EL CLIENTE YA ESCUCHÓ"
 - [ ] Verifiqué que NO pido nada de la lista "EL CLIENTE YA ME DIJO"
@@ -577,6 +609,9 @@ PLAN ENTREGADO
 - ❌ **Asumir que el deal ya está cerrado** — el cliente no ha dicho que sí. Nada de "cuándo es la llamada con Teselar", "dame al responsable de TI", "para arrancar el setup". Eso se pide DESPUÉS de firma. El email es para CONSTRUIR EL DEMO, no para ejecutar proyecto.
 - ❌ **Omitir pains importantes del transcript en PARTE 1.** Si el cliente repitió o describió con detalle un dolor (ej: "cuando algo sale mal queremos hacer ingeniería inversa con IA"), ese pain DEBE estar en el email — es la prueba de que escuchaste.
 - ❌ **Mezclar pedidos con acuerdos** — primero PARTE 1 (pains), después PARTE 2 (pedidos para el demo), al final PARTE 3 (acuerdos mutuos). Si pones "acuerdos de mi lado" arriba se ve como autopromoción; abajo se ve como cierre profesional.
+- ❌ **Dirigir pedidos o acuerdos a personas específicas del cliente.** No conoces su jerarquía interna. "Samuel: mándame X / Rodrigo: mándame Y" asume que tienes autoridad para asignarles tareas y que sabes quién hace qué. En su lugar formula al equipo / a quien aplique / a quien tenga la info más a la mano. Excepción única: si el cliente nombró explícitamente a alguien para una tarea en el transcript, puedes usar su nombre como recordatorio amable.
+- ❌ **Apuntar a menos de 4 pains o más de 5 en PARTE 1.** Menos = se siente superficial. Más = se vuelve lista genérica de mercado. El número correcto es 5; baja a 4 solo si el transcript no da para más.
+- ❌ **Listar los pains en orden de aparición en el transcript** — el orden debe ser por impacto compuesto (frecuencia + decisor + detalle + cantidad de personas que lo nombraron), no cronológico.
 
 ---
 
