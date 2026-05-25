@@ -76,6 +76,12 @@ Toda cotización debe incluir estas secciones en este orden. Adaptar el contenid
   - Hipótesis: derivar del alcance funcional de la sección 5; debe haber coherencia 1:1
   - KPIs: validar con el cliente cuando sea posible; si no, usar estimaciones conservadoras y marcarlas como tales
 
+- **🚫 REGLA CRÍTICA — Nunca exponer bugs/defectos del sistema en el One-Pager:**
+  Los dolores deben describir EXCLUSIVAMENTE la realidad operativa del cliente ANTES de tu sistema (procesos manuales, Excel, correos, llamadas, sin visibilidad). NUNCA listes como "dolor" un bug, defecto o regresión que TU sistema haya tenido y que después arreglaste. Frases como *"Bug: el sistema sobrescribía X"*, *"Antes el portal no validaba Y"*, *"Se rompía cuando Z"* leen como "el sistema viene con defectos" en la cabeza de un cliente que está decidiendo si firmar.
+  - Si hay un fix relevante, va al **changelog interno** o a una sección de "Mejoras del último ciclo" como historial técnico, NUNCA en el documento de venta.
+  - Si el bug refleja un proceso real del cliente que era confuso (ej. "no había claridad entre quién solicitó vs quién está asignado"), **reformúlalo desde la óptica operativa del cliente**: "Trazabilidad confusa entre ejecutivo del cliente y responsable de revisión" — eso sí es un dolor legítimo del cliente, no un bug del sistema.
+  - Regla de oro: si lees el One-Pager poniéndote en los zapatos del que va a firmar, ninguna frase debería hacerlo dudar de la calidad de lo que ya está construido.
+
 ### 4. Resumen Ejecutivo
 - Descripción de la solución en 1-2 párrafos
 - Cifras clave en formato visual (súper-módulos, sub-módulos, usuarios, etc.)
@@ -226,6 +232,24 @@ Al generar o revisar una cotización, verificar que estén cubiertos estos punto
 - Portada con espaciado generoso, logo grande centrado, tabla label/valor
 - Screenshots de módulos insertados a ancho completo debajo de cada descripción funcional
 - Cifras clave del resumen ejecutivo en formato de "tarjetas" horizontales (ej: "5 súper-módulos | 15+ sub-módulos | 3 oficinas | IA integrada")
+
+## Anti-patrones — NUNCA hacer
+
+- **Exponer defectos del propio sistema en el documento de venta.** Los pain points del One-Pager describen la realidad del cliente ANTES de la plataforma, no fixes hechos sobre tu propio código. Ver regla crítica en sección 3 del documento.
+- **Mezclar el changelog del producto con la cotización.** El cliente que firma no quiere leer "v1.2 arregló X, v1.3 mejoró Y". Quiere leer "esto resuelve tu problema operativo Z". El changelog va en una página interna del producto (ej. `/changelog`), no en el PDF de venta.
+- **Listar "limpieza de warnings", "fix de bug", "refactor" como entregables.** Si vas a presentar mejoras hechas, frasealas en términos de outcome para el cliente, no de actividad técnica del proveedor.
+- **Prometer KPIs sin mecanismo claro para alcanzarlos.** Si dices "−40% de llamadas al ejecutivo", debe haber una funcionalidad concreta en el alcance que justifique esa reducción. Si no, baja el KPI o quítalo.
+
+## Cotizaciones en USD con cliente mexicano
+
+Cuando la cotización vaya en dólares (USD) y el cliente sea mexicano:
+
+- **Aclarar moneda explícitamente en cada precio**: "$18,000 USD" no solo "$18,000" — para evitar confusión con MXN.
+- **Nota obligatoria sobre IVA y CFDI**: "Precios expresados en USD antes de IVA. Si Grupo X requiere CFDI, se factura en MXN al tipo de cambio Banxico (DOF) del día de emisión + IVA 16%. Si el pago se realiza a cuenta extranjera en USD, no se emite CFDI mexicano."
+- **Opción A (sin CFDI)** puede ser cuenta USD (US bank account, Wise, Mercury). **Opción B (con CFDI)** siempre es cuenta MXN de persona moral mexicana.
+- **Tabla de penalización**: mantener los montos máximos en la misma moneda de la cotización (USD si es USD), no convertir.
+- **Hora adicional**: también en USD con comparativo de mercado en USD (ej. "$50 USD/hora vs $80 USD/hora de mercado para senior comparable").
+- **Forma de pago anual**: si es plan anual, ofrecer pago en USD a cuenta extranjera con descuento mantenido. Si requieren CFDI anual, la conversión MXN se hace una sola vez al firmar.
 
 ## Notas importantes
 
