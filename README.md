@@ -68,9 +68,27 @@ Self-hostear cuando crezca
   └─► lovable-to-supabase → Migración de instancia
 ```
 
-## Sobre Claude.ai web
+## Dónde funcionan estos skills (IMPORTANTE)
 
-Los skills de este marketplace **NO funcionan en Claude.ai chat web** — solo en Claude Code y Claude Cowork. Para Claude.ai chat, los skills se suben por un mecanismo aparte desde el panel de Anthropic.
+Claude Desktop maneja **DOS sistemas de skills separados**:
+
+- **Sesiones "code" (Claude Code):** leen este repo directamente desde el disco
+  (instalado como plugin marketplace —ver arriba— o como enlaces/junctions en
+  `~/.claude/skills/`). Se **auto-actualizan con git** (`git pull` /
+  `/plugin marketplace update`).
+
+- **Sesiones "chat" y "design" (sincronizadas desde tu cuenta de Claude):** NO
+  leen el disco; solo ven skills que estén **subidas a tu cuenta**. Para que
+  aparezcan ahí:
+  1. claude.ai o Claude Desktop → **Settings → Capabilities → Skills**.
+  2. **Upload / Create skill** → sube un `.zip` por skill (un zip de la carpeta
+     `skills/<nombre>/`, que contiene su `SKILL.md`).
+  3. ⚠️ **Estas NO se auto-actualizan con git.** Cada vez que edites un skill en
+     este repo, **re-genera su `.zip` y vuélvelo a subir a la cuenta**. Sin ese
+     paso, chat y design seguirán usando la versión vieja.
+
+> Recordatorio rápido en cada update: `git pull` cubre **code**; para **chat/design**
+> hay que **re-subir el ZIP** del skill que cambió.
 
 ## Estructura del repo
 
