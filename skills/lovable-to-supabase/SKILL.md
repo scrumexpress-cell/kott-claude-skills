@@ -20,6 +20,10 @@ Lo único que el usuario DEBE hacer manualmente (porque no hay forma de hacerlo 
 1. **Configurar los secrets** de las edge functions en Supabase Dashboard → Settings → Edge Functions → Secrets (`RESEND_API_KEY`, `OPENAI_API_KEY`, etc.)
 2. **Crear nuevo proyecto Lovable** si se está migrando un proyecto Lovable Cloud existente (ver 0.11 y 0.12 — Lovable Cloud no se puede desconectar)
 
+**NUNCA pidas la cadena de conexión / service key del Supabase INTERNO de Lovable — Lovable NO la expone.** La ÚNICA forma de leer/extraer datos del interno es su **SQL editor** (`lovable.dev/projects/<UUID>?view=cloud&section=sql`, ver 0.3), vía Chrome MCP. Si te ves pidiéndole al usuario "pásame la conexión de Lovable", PARA — abre su SQL editor y consúltalo tú.
+
+**Este skill también aplica a VERIFICAR/RECONCILIAR una migración YA hecha (Fase 10), no solo a la inicial.** Re-invócalo cuando el usuario diga "faltan datos", "antes eran más", "olvidarme de Lovable" o "migrar a Cloudflare".
+
 **TODO lo demás lo haces tú** sin preguntar. Usa las herramientas disponibles en este orden de preferencia:
 
 | Necesidad | Mejor tool | Fallback |
@@ -713,12 +717,15 @@ project_id = "<nuevo-project-id>"
 
 ### 5.4 Hardcodear fallback en `src/integrations/supabase/client.ts`
 
-**Esto es importante.** Lovable a veces no inyecta las vars de `.env` correctamente. Para que la app funcione SIEMPRE:
+**Esto es importante — y OJO con el matiz (lección de campo).** Si el proyecto SIGUE en Lovable Cloud, Lovable **INYECTA sus propias `VITE_SUPABASE_*` en el build**, así que un `import.meta.env.X || fallback` **NO sirve**: el env de Lovable gana y la app se queda apuntando al Supabase interno. Para FORZAR el externo aun estando en Lovable, **hardcodea SIN leer el env** (ignóralo por completo):
 
 ```ts
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://<nuevo>.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "<nueva-anon-key>";
+// Proyecto en Lovable Cloud: hardcodear DURO (ignorar import.meta.env; Lovable lo pisaría).
+const SUPABASE_URL = "https://<nuevo>.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "<nueva-anon-key>";
 ```
+
+Si el proyecto NO está en Lovable Cloud, el patrón `import.meta.env.X || "<fallback>"` sí es válido. Verifica tu caso (0.11). Confirma el resultado en el bundle desplegado: debe contener el project_id NUEVO y NINGUNA referencia al viejo (`grep` del bundle).
 
 Aplica el mismo patrón a cualquier otro cliente Supabase que encuentres (`glob: src/integrations/**/client.ts`).
 
@@ -848,6 +855,68 @@ Configurar secrets en Supabase Dashboard → Settings → Edge Functions → Sec
 
 ---
 
+## FASE 10 — Reconciliación post-switch y cutover a Cloudflare (dejar Lovable del todo)
+
+Las fases 0-9 asumen una migración LIMPIA de una sola vez. La realidad casi siempre es más sucia y esta fase la cubre. **Re-invoca este skill cuando el usuario diga: "faltan datos/empresas", "antes eran más", "verifica la migración", "quiero olvidarme de Lovable", "migremos a Cloudflare".** No asumas que la migración inicial dejó todo — reconcilia contra el interno (su SQL editor, 0.3).
+
+**Escenario típico:** la app ya se cambió a apuntar al externo, PERO (a) la data quedó partida (unas tablas más completas en el interno, otras en el externo), y/o (b) el usuario SIGUIÓ trabajando en Lovable (su IA o equipo) después de migrar, y/o (c) el objetivo real es DEJAR Lovable por completo (mover hosting a Cloudflare), no solo repuntar.
+
+### 10.1 Reconciliar datos partidos (interno vs externo) — por NOMBRE, no por id
+
+Compara CONTEOS de tablas clave en AMBOS lados (interno via Lovable SQL editor 0.3; externo via MCP):
+```sql
+SELECT 'clients' t, count(*) FROM clients UNION ALL SELECT 'commissions', count(*) FROM client_commissions
+UNION ALL SELECT 'companies', count(*) FROM companies UNION ALL SELECT 'templates', count(*) FROM email_templates;
+```
+- Si el EXTERNO tiene MÁS (ej. catálogo completo importado) → el externo gana, no toques.
+- Si el INTERNO tiene más en CONFIG (comisiones, etc.) → puede ser data que capturaron en Lovable después de migrar… **pero también puede ser la data VIEJA/mal capturada que ya corregiste en el externo. NO importes a ciegas** (re-romperías lo verificado).
+- Las llaves (`client_id`, `company_id`) NO coinciden entre interno y externo si el catálogo difiere. **Sincroniza config MATCHEANDO POR NOMBRE** del cliente/empresa, agregando solo lo que falte, sin sobrescribir lo verificado.
+
+### 10.2 Schema drift: el externo puede tener MENOS columnas que la app espera
+
+Una migración apresurada deja la tabla del externo SIN columnas que el código usa (ej. `companies` sin `domicilio_fiscal`, `estatus_empresa`) → la vista sale **EN BLANCO** o con error oculto. Compara columnas (`information_schema.columns`) interno vs externo, agrega las que falten:
+```sql
+ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS estatus_empresa text, ADD COLUMN IF NOT EXISTS domicilio_fiscal text;
+```
+…y **recarga la caché** (10.3).
+
+### 10.3 ⚠️ CRÍTICO: recargar la caché de PostgREST tras CUALQUIER DDL en el externo
+
+Tras crear/migrar tablas o columnas, PostgREST mantiene la caché vieja: el front da **"Could not find the table/column X in the schema cache"** y los INSERT fallan **aunque la tabla/columna, grants y RLS estén bien**. Se ve como "no guarda", "no vincula", "pantalla en blanco". Fix (córrelo después de TODO ALTER/CREATE):
+```sql
+NOTIFY pgrst, 'reload schema';
+```
+Verifica con un INSERT real (HTTP 201) usando un JWT de un usuario con la RLS correcta.
+
+### 10.4 Migrar ARCHIVOS de Storage (NO migran con la DB)
+
+`pg_dump`/migraciones NO traen los archivos (logos, membretes, actas, PDFs). Lístalos en el interno:
+```sql
+SELECT bucket_id, count(*), round(sum((metadata->>'size')::bigint)/1048576.0,1) mb FROM storage.objects GROUP BY bucket_id;
+```
+Realidad: los buckets suelen ser PRIVADOS (no hay URL pública para curl) y los paths usan IDs internos (≠ externos, no "religan" solos). **Lo más rápido y limpio casi siempre: RE-SUBIR los pocos archivos importantes (logos/membretes) desde la propia app** — queda bien ligado a la entidad del externo. Migrar archivo-por-archivo por el navegador (download autenticado → re-upload) es lento; resérvalo para cuando son muchos y críticos.
+
+### 10.5 Cutover de HOSTING a Cloudflare (dejar Lovable del todo)
+
+Si el usuario quiere ABANDONAR Lovable (no solo repuntar):
+1. **client.ts HARDCODEADO** (5.4 corregido) — para que Lovable deje de imponer su Cloud.
+2. **Build + deploy:** `npx wrangler@3 pages deploy dist --project-name=<x>` (wrangler 4 necesita Node 22). **Quita assets > 25 MB** antes (`find dist -type f -size +25M -delete`) — límite de Cloudflare Pages.
+3. **Ruteo SPA:** Cloudflare Pages YA hace fallback a index.html; las URLs directas (`/app/...`) funcionan sin `_redirects`. Verifica: `curl -o /dev/null -w "%{http_code}" https://<proj>.pages.dev/ruta/profunda` → 200.
+4. **Auto-deploy** (reemplaza el auto-rebuild de Lovable): un proyecto Pages de "direct upload" (wrangler) NO se conecta a git desde el panel → usa una **GitHub Action** con `cloudflare/wrangler-action@v3` en push a main. El usuario agrega 2 secrets al repo: `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID` (TÚ no los pongas — son credenciales en un servicio; instruye al usuario). Verifica: `gh run watch <id> --exit-status`.
+5. **Dominio:** apuntar el dominio a Cloudflare (DNS, lo hace el usuario). Mientras, `*.pages.dev` sirve igual.
+
+### 10.6 ⚠️ Hazard: edición en PARALELO (Lovable AI + tú)
+
+Si la app ya apunta al externo PERO el usuario sigue pidiéndole cambios a la IA de Lovable, **ambos editan el MISMO repo + la MISMA base** → se pisan (los commits de Lovable caen al repo donde trabajas; uno revierte al otro; verás "Pushed from GitHub" o cambios que no hiciste, y `git push` rechazado por rebase). **Avísale al usuario: iniciado el cutover, TODOS los cambios (código y datos) por UN solo canal.**
+
+### 10.7 Auth sin SMTP: autoconfirm + crear usuarios por SQL
+
+Si no hay `setup-admin` ni SMTP:
+- Activa auto-confirmación (Management API, Bearer = access token de Supabase): `PATCH https://api.supabase.com/v1/projects/<ref>/config/auth` con `{"mailer_autoconfirm": true}` → los registros entran sin verificar correo.
+- Crea usuarios directo por SQL, confirmados: `INSERT auth.users` (con `encrypted_password = extensions.crypt('Temp!', extensions.gen_salt('bf'))`, `email_confirmed_at = now()`) + `INSERT auth.identities` (identity_data con `sub`+`email`+`email_verified:true`) + `UPDATE public.user_profiles SET role=..., office_id=...`. Entrega el password temporal para que lo cambien. (El trigger `handle_new_user` suele crear el profile solo; tú solo ajustas role/oficina.)
+
+---
+
 ## Problemas frecuentes y soluciones
 
 | Problema | Causa | Solución |
@@ -868,6 +937,12 @@ Configurar secrets en Supabase Dashboard → Settings → Edge Functions → Sec
 | Trigger duplica filas en `profiles` al migrar | `on_auth_user_created` trigger | Usar `ON CONFLICT DO NOTHING` o UPDATE en lugar de INSERT (0.8) |
 | EPERM al escribir SKILL.md | Archivo read-only por skill system | `chmod u+w SKILL.md` antes de editar, `chmod u-w` después |
 | SQL editor cuelga con paste >150K chars | Límite del Monaco editor | Particionar en chunks de 250 filas / usar MCP `execute_sql` |
+| "Could not find the table/column X in schema cache" / "no guarda" / "no vincula" tras migrar | Caché de PostgREST vieja tras DDL | `NOTIFY pgrst, 'reload schema'` en el externo (10.3) |
+| Una vista sale EN BLANCO tras migrar | El externo no tiene columnas que la app espera | Comparar columnas + `ALTER ADD COLUMN IF NOT EXISTS` + recargar caché (10.2/10.3) |
+| La app sigue en el Supabase interno pese al fallback `\|\|` | Lovable Cloud inyecta su env y gana sobre el `\|\|` | Hardcodear DURO sin leer env (5.4) |
+| "Hay menos datos/empresas que antes" | Data partida interno/externo, o agregada en Lovable después de migrar | Reconciliar por NOMBRE; no importar a ciegas (10.1) |
+| Commits "Pushed from GitHub" o `git push` rechazado que tú no hiciste | Edición en paralelo con la IA de Lovable sobre el mismo repo/base | Un solo canal de cambios tras el cutover (10.6) |
+| Storage vacío en el externo / empresas sin logo | Los archivos no migran con la DB | Re-subir desde la app o migrar objects (10.4) |
 
 ---
 
