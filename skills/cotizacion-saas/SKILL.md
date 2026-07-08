@@ -111,10 +111,10 @@ Toda cotización debe incluir estas secciones en este orden. Adaptar el contenid
 - Destacar funcionalidades de IA con texto como "clasificación automática por IA", "detector de anomalías", "predicción de cobranza IA", "asistente IA con resumen en lenguaje natural"
 - Si algún módulo tiene integración futura pendiente (ej. nómina externa), aclarar que "la integración completa se cotizará por separado"
 
-### 6. Infraestructura y Tecnología
-- Tabla "Componente / Detalle" con filas típicas: Base de datos, Autenticación y Roles, Almacenamiento de archivos, Edge Functions (con capacidad mensual), Aplicación web (SPA), Repositorio GitHub, Seguridad
-- Stack tecnológico explícito en una línea al cerrar la tabla: "React · TypeScript · PostgreSQL · Supabase · Edge Functions · IA (OpenAI/Claude)"
-- Cerrar con nota de portabilidad: "Todas las tecnologías son estándar y de código abierto, sin dependencia de proveedor propietario. El cliente puede migrar la plataforma a cualquier infraestructura compatible."
+### 6. Infraestructura y Tecnología — ⚠️ OMITIR POR DEFAULT (el usuario pidió eliminarla)
+- NO incluir esta sección salvo que el usuario la pida explícitamente para una cotización en particular (p. ej. cliente con área de TI que la exige).
+- Si se pide: tabla "Componente / Detalle" (Base de datos, Autenticación y Roles, Almacenamiento, Edge Functions, Aplicación web, Repositorio GitHub, Seguridad), stack en una línea y nota de portabilidad ("tecnologías estándar y de código abierto, sin dependencia de proveedor propietario; el cliente puede migrar a cualquier infraestructura compatible").
+- La garantía de propiedad/portabilidad que le importa al cliente vive en la sección de Modelo Comercial y Propiedad del Código.
 
 ### 7. Modelo Comercial y Propiedad del Código
 - Filosofía del modelo (transparencia, sin dependencia)
@@ -168,14 +168,9 @@ Incluir estas subsecciones (cada una como header de nivel 3 dentro de la secció
 - **Vigencia de la Cotización** — 30 días naturales desde la fecha de emisión; precios sujetos a cambio después.
 - **Nota de Cotización ≠ Contrato** — Cerrar con: "El presente documento constituye una cotización y no un contrato. En caso de que ambas partes estén interesadas en llevar a cabo el proyecto, se procederá a la firma de un contrato de prestación de servicios que detalle todas las condiciones aquí descritas, así como cualquier aspecto adicional no especificado en esta cotización."
 
-### 13. Glosario de Términos
-- Definir todos los tecnicismos usados en el documento
-- Orientado a un lector no técnico (el cliente es abogado, contador, director, etc.)
-
-### 14. Cierre / Call to Action
-- "¿Comenzamos?" o equivalente
-- Datos de contacto
-- Logo del cliente si está disponible
+### 🚫 Secciones ELIMINADAS del formato (decisión permanente del usuario — NO incluirlas)
+- **Glosario de Términos** — NO incluir nunca. Si un tecnicismo es imprescindible, explicarlo entre paréntesis en el mismo lugar donde aparece.
+- **Cierre / Call to Action** ("¿Comenzamos?") — NO incluir. Los datos de contacto van completos en la PORTADA (Preparado por: nombre, correo, teléfono); el documento termina con Condiciones Generales / Datos para Pago.
 
 ## Modelos comerciales típicos
 
@@ -239,6 +234,7 @@ Al generar o revisar una cotización, verificar que estén cubiertos estos punto
 
 ## Formato de salida
 
+- **Documento COMPACTO (objetivo: 5-6 páginas).** Agrupar secciones afines para que fluyan sin saltos de página forzados (p. ej. Hallazgos+Resumen Ejecutivo; Modelo Comercial+Inversión+Suscripción+Penalización+Cronograma). Omitir el índice si el documento queda corto. Condiciones Generales en tabla compacta de 2 columnas (Condición / Detalle), no como sub-secciones con encabezado.
 - **El entregable FINAL siempre es un PDF.** Genera el documento como `.docx` (con el skill de docx) y luego conviértelo a PDF; el PDF es lo que se entrega al usuario. Conserva el `.docx` como archivo fuente editable, pero el output principal es el `.pdf`.
   - Conversión (elige según el sistema):
     - **Linux/macOS o sandbox:** `python <skill-docx>/scripts/office/soffice.py --headless --convert-to pdf cotizacion.docx` (LibreOffice). OJO: ese script usa `socket.AF_UNIX` y FALLA en Windows.
