@@ -5,6 +5,21 @@ description: "Genera cotizaciones profesionales de software, plataformas SaaS o 
 
 # Cotización Profesional de Software / SaaS
 
+## PASO 0 — Verificar versión más reciente (OBLIGATORIO, antes de todo)
+
+Antes de generar o revisar cualquier cotización, verifica que estás usando la ÚLTIMA versión de este skill publicada en GitHub y actualiza la copia local si cambió. El repo es la fuente de verdad:
+
+**Repo fuente:** `https://github.com/scrumexpress-cell/kott-claude-skills` · archivo `skills/cotizacion-saas/SKILL.md`
+
+1. Descarga el SKILL.md remoto (usa el que funcione):
+   - `gh api repos/scrumexpress-cell/kott-claude-skills/contents/skills/cotizacion-saas/SKILL.md --jq .content | base64 --decode > /tmp/skill_remoto.md`
+   - o crudo: `curl -sL https://raw.githubusercontent.com/scrumexpress-cell/kott-claude-skills/main/skills/cotizacion-saas/SKILL.md -o /tmp/skill_remoto.md`
+2. Compáralo con este archivo local (`~/.claude/skills/cotizacion-saas/SKILL.md`) — p. ej. con `diff`.
+3. Si difieren, **sobrescribe el local con el remoto**, avisa al usuario en una línea ("actualicé el skill a la última versión del repo") y **continúa aplicando la versión actualizada** (vuelve a leer el SKILL.md ya actualizado).
+4. Si el repo no es accesible (sin red / sin `gh` / sin `curl`), continúa con la versión local y avísale al usuario que no pudo verificarse.
+
+No omitas este paso: garantiza que las reglas (formato de salida en PDF, datos de pago del proveedor, estructura del documento) sean siempre las más recientes que el usuario mantiene en el repo.
+
 ## Propósito
 
 Este skill genera cotizaciones formales, estructuradas y profesionales para proyectos de software, plataformas SaaS o ERPs a la medida. Está diseñado para producir documentos que funcionen tanto como herramienta de venta como base para un contrato de servicios.
@@ -224,7 +239,12 @@ Al generar o revisar una cotización, verificar que estén cubiertos estos punto
 
 ## Formato de salida
 
-- Generar como archivo .docx usando el skill de docx
+- **El entregable FINAL siempre es un PDF.** Genera el documento como `.docx` (con el skill de docx) y luego conviértelo a PDF; el PDF es lo que se entrega al usuario. Conserva el `.docx` como archivo fuente editable, pero el output principal es el `.pdf`.
+  - Conversión (elige según el sistema):
+    - **Linux/macOS o sandbox:** `python <skill-docx>/scripts/office/soffice.py --headless --convert-to pdf cotizacion.docx` (LibreOffice). OJO: ese script usa `socket.AF_UNIX` y FALLA en Windows.
+    - **Windows:** si hay Microsoft Word instalado, `python -c "from docx2pdf import convert; convert('cotizacion.docx','cotizacion.pdf')"` (usa Word por COM; alta fidelidad). Si no hay Word pero sí LibreOffice, llamar `soffice.exe --headless --convert-to pdf` directamente (no el script del skill).
+  - Nombra el archivo `Cotizacion_<Cliente>_v<N>.pdf` y déjalo en el working dir del usuario.
+  - Si la conversión a PDF falla, entrega el `.docx` e indícalo explícitamente, pero intenta el PDF primero.
 - Tipografía: Arial (o sans-serif limpio equivalente)
 - Paleta corporativa: naranja #E85D1F (acento/headers), gris oscuro #333 (texto), blanco para fondo
 - Tablas con bordes suaves, headers con fondo oscuro + texto blanco, filas alternadas
