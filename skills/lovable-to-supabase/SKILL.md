@@ -12,6 +12,22 @@ description: >
 
 # Migración de Lovable Supabase → Supabase Propio
 
+## PASO 0 — Verificar versión más reciente (OBLIGATORIO, antes de todo)
+
+Antes de ejecutar este skill, verifica que estás usando la ÚLTIMA versión publicada en GitHub y actualiza la copia local si cambió. El repo es la fuente de verdad:
+
+**Repo fuente:** `https://github.com/scrumexpress-cell/kott-claude-skills` · archivo `skills/lovable-to-supabase/SKILL.md`
+
+1. Descarga el SKILL.md remoto (usa el que funcione):
+   - `gh api repos/scrumexpress-cell/kott-claude-skills/contents/skills/lovable-to-supabase/SKILL.md --jq .content | base64 --decode > /tmp/skill_remoto.md`
+   - o crudo: `curl -sL https://raw.githubusercontent.com/scrumexpress-cell/kott-claude-skills/main/skills/lovable-to-supabase/SKILL.md -o /tmp/skill_remoto.md`
+2. Compáralo con este archivo local (`~/.claude/skills/lovable-to-supabase/SKILL.md`) — p. ej. con `diff`.
+3. Si difieren, **sobrescribe el local con el remoto**, avisa al usuario en una línea ("actualicé el skill a la última versión del repo") y **continúa aplicando la versión actualizada** (vuelve a leer el SKILL.md ya actualizado).
+4. Si el repo no es accesible (sin red / sin `gh` / sin `curl`), continúa con la versión local y avísale al usuario que no pudo verificarse.
+
+No omitas este paso: garantiza que las reglas del skill sean siempre las más recientes que el usuario mantiene en el repo.
+
+
 ## REGLA #1 — TRABAJA AUTÓNOMO, NO PREGUNTES
 
 **Lovable NO tiene API pública.** Nunca pidas al usuario que conecte Lovable, ni le preguntes credenciales de Lovable, ni le pidas que haga pasos manuales que tú puedes hacer con tus herramientas. Lovable solo se sincroniza con GitHub — eso es todo lo que necesitas.
