@@ -153,7 +153,7 @@ Toda cotización debe incluir estas secciones en este orden. Adaptar el contenid
 - Forma de pago ligada al cronograma
 
 ### 12. Condiciones Generales
-Incluir estas subsecciones (cada una como header de nivel 3 dentro de la sección):
+**Presentarlas como tabla compacta de 2 columnas (Condición / Detalle) con ~6 filas AGRUPADAS**, no como subsecciones con encabezado. Agrupación estándar: (1) Propiedad y uso del código [PI + anti-reventa], (2) Confidencialidad y datos [confidencialidad + datos post-terminación], (3) Aceptación, vigencia y renovación [criterios de aceptación + vigencia/renovación + vigencia de la cotización], (4) Facturación y mora, (5) Nivel de servicio [SLA con crédito], (6) Disputas y fuerza mayor. Los temas a cubrir son los siguientes:
 
 - **Propiedad Intelectual** — Código es propiedad del cliente desde su creación; proveedor cede derechos patrimoniales; repositorio GitHub siempre actualizado.
 - **Confidencialidad** — Bidireccional, durante y después del contrato. Datos del cliente son del cliente.
