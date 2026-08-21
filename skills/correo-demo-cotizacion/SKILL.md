@@ -67,7 +67,7 @@ order by fecha_reunion desc limit 3;
 
 Va en **español mexicano, tuteando, casual pero con oficio**. Héctor escribe como habla: directo, sin corporativismos, sin "quedo a sus órdenes".
 
-La estructura tiene cuatro partes y este orden importa:
+La estructura tiene cinco partes y este orden importa:
 
 **1. El saludo y la noticia.** Corto. Que ya quedó su demo y que va también la cotización.
 
@@ -100,26 +100,21 @@ Prueba rápida antes de mandar: léelas de corrido. Si suenan a lista, van bien.
 
 Cierra el bloque con una línea diciendo que eso es justo lo que va a ver. **Si el cliente no tiene juntas registradas, omite el bloque completo.** Inventarle beneficios que no pidió es peor que no personalizar: se nota, y desmiente justo la idea de que lo escuchaste.
 
-**3. La promesa. Es el corazón del correo, y va con su propio encabezado.**
+**3. La promesa. Es el corazón del correo.**
 
-Esto es lo que Héctor de verdad vende. No lo entierres dentro de un párrafo: **abre con una línea suelta, en encabezado**, para que sea lo único que quede si el cliente solo barre el correo con la vista.
+Esto es lo que Héctor de verdad vende, y es lo único del correo que **no se adapta a cada cliente**: va idéntico para todos, en un solo párrafo corrido, sin encabezado ni negritas.
+
+**Este párrafo es de Héctor. Va literal:**
 
 ```html
-<h3>Lo que te estamos ofreciendo no es un software de cajita como otros.</h3>
-
-<p>Es el demo inicial de un producto y una promesa. Llevo 17 años construyendo sistemas digitales, y en la mensualidad —además de la infraestructura— estás contratando <strong>horas mías</strong> para trabajar junto con tu gente y evolucionar la plataforma hasta que sea lo que tu equipo necesita.</p>
+<p>Es importante dejar claro que lo que te estamos ofreciendo no es un software de caja: estás contratándome a mí, a Héctor personalmente, para trabajar contigo en la creación de un sistema digital a la medida de tu compañía. La cuota de inicio y la mensualidad incluyen horas mensuales mías para juntarme con tu equipo y desarrollar la plataforma, evolucionándola hasta convertirse en la herramienta que empodere a tu gente con la última tecnología. La mensualidad incluye además la garantía de soporte especializado de mi equipo para las personas que la usan todos los días.</p>
 ```
 
-**Un encabezado y un párrafo. No lo alargues.** Aquí la brevedad no es economía de espacio, es fuerza: cuanto más se explica una promesa, menos suena a promesa y más a folleto. Si el bloque se pasa de cuatro renglones, algo sobra.
+**Cópialo tal cual. No lo mejores.** Sobre lo único que puedes pasar la mano es la ortografía y la puntuación; las palabras son suyas y así las quiere.
 
-**Las cuatro ideas que no se negocian:**
+Vale la pena saber por qué está subrayado esto: este párrafo se reescribió **cuatro veces** antes de quedar. Cada versión "mejorada" —más pulida, más profesional, mejor rematada— se alejaba de lo que él quería decir, hasta que lo dictó palabra por palabra. Es el bloque donde Héctor vende lo que solo él puede vender, y ahí su redacción vale más que cualquier arreglo. Lo mismo aplica a cualquier otro texto que él dicte: **si te da las palabras, ésas son las palabras.**
 
-1. **No es software de cajita como otros** — en encabezado suelto, no diluido en prosa. Es lo único que queda si el cliente solo barre el correo con la vista.
-2. **Es el demo inicial de un producto, no el producto terminado.** Suena a que promete menos y por eso funciona: pone la expectativa correcta desde el primer día, y todo lo que venga después suma en vez de decepcionar.
-3. **Diecisiete años construyendo sistemas digitales.** Es lo que hace creíble lo que sigue. Sin ese dato, "horas mías" es tiempo de un desconocido; con él, es criterio.
-4. **En la mensualidad, además de la infraestructura, está contratando horas de Héctor** para trabajar junto con su gente. Ésta es la que más pesa y la que más fácil se aguada. No es "yo lo voy a evolucionar" en abstracto: es que lo que el cliente paga cada mes **incluye tiempo suyo**. Dilo con esas palabras — es lo que ningún competidor de software empaquetado puede ofrecer, y es lo que hace que el precio se entienda.
-
-Cuida el tono: es un compromiso, no un alarde. Nada de "somos los únicos" ni "a diferencia de la competencia"; la comparación ya la hace la primera línea sin señalar a nadie. Y los 17 años se mencionan al pasar, como el dato que son, no como una credencial que se presume.
+Si algún día pide cambiarlo, cámbialo aquí en el skill para que valga para todos, no solo en el correo de ese cliente.
 
 **4. Los datos del demo y el cierre.** Liga, usuario si aplica, clave. Y que la cotización va adjunta. Cierra agradeciendo y diciendo que esperan pronto empezar a trabajar con ellos.
 

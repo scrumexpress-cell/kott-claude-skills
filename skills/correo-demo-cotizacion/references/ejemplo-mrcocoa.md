@@ -31,9 +31,7 @@ Checo, tu plataforma ya está lista
 
 <p>Eso es justo lo que vas a ver.</p>
 
-<h3>Lo que te estamos ofreciendo no es un software de cajita como otros.</h3>
-
-<p>Es el demo inicial de un producto y una promesa. Llevo 17 años construyendo sistemas digitales, y en la mensualidad —además de la infraestructura— estás contratando <strong>horas mías</strong> para trabajar junto con tu gente y evolucionar la plataforma hasta que sea lo que tu equipo necesita.</p>
+<p>Es importante dejar claro que lo que te estamos ofreciendo no es un software de caja: estás contratándome a mí, a Héctor personalmente, para trabajar contigo en la creación de un sistema digital a la medida de tu compañía. La cuota de inicio y la mensualidad incluyen horas mensuales mías para juntarme con tu equipo y desarrollar la plataforma, evolucionándola hasta convertirse en la herramienta que empodere a tu gente con la última tecnología. La mensualidad incluye además la garantía de soporte especializado de mi equipo para las personas que la usan todos los días.</p>
 
 <p>Aquí están los datos para que la abras con calma:</p>
 
@@ -84,8 +82,8 @@ La primera versión decía *"Capturar el mismo pedido dos veces"*. Héctor: *"ti
 **3. El correo traía un instructivo de la demo.**
 Explicaba cómo entrar y por dónde empezar. Se quitó: ese acompañamiento lo da Héctor en vivo y es parte de lo que vende.
 
-**4. La promesa se explicaba en tres párrafos.**
-Se convirtió en un encabezado y un párrafo. Y el cambio de fondo: pasó de *"yo personalmente evolucionaré la plataforma"* —una actitud— a *"estás contratando horas mías"* —algo que se cotiza. Una actitud no justifica un precio; unas horas sí.
+**4. La promesa se reescribió cuatro veces hasta que Héctor la dictó.**
+Pasó de tres párrafos a uno; de *"yo personalmente evolucionaré la plataforma"* —una actitud— a *"estás contratándome a mí"* —algo que se cotiza. Cada versión "mejorada" se alejaba de lo que él quería decir, hasta que la escribió él palabra por palabra. Ése es el párrafo que va literal en todos los correos, y la lección más grande de este caso: **si Héctor te da las palabras, ésas son las palabras.**
 
 ---
 
