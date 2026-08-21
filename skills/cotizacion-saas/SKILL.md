@@ -236,6 +236,7 @@ Al generar o revisar una cotización, verificar que estén cubiertos estos punto
 15. **Coherencia One-Pager ↔ Alcance** — Verificar que cada dolor del one-pager tenga una hipótesis de solución reflejada en el alcance funcional, y que cada KPI prometido sea defendible con la funcionalidad ofrecida. Si hay un dolor sin solución en el alcance, o un KPI sin mecanismo claro para alcanzarlo, marcarlo.
 16. **Cada promesa existe y no cuesta por uso** — Recorrer bullets, tablas de "qué incluye" y condiciones, y confirmar una por una que (a) están construidas —archivo y línea, o tabla y consulta— y (b) su costo no crece con el uso del cliente. Ver la regla dura más abajo.
 17. **Cotización registrada en `quotes`** — El PDF no basta: verificar que quedó la fila con `cliente_id` ligado. Ver "PASO FINAL" más abajo. Sin esto, los agentes seguirán reportando al cliente como "falta cotizar".
+18. **PDF archivado fuera de la máquina** — `pdf_path` apunta al escritorio de Héctor; eso no es archivo, es una copia local. Verificar que `pdf_storage_path` quedó lleno vía `archivar-cotizacion`. Ver "PASO FINAL" más abajo.
 
 ## Formato de salida
 
@@ -286,6 +287,142 @@ Reglas:
 - **Versión nueva de una cotización existente** (v2, v3…): inserta una fila nueva con su propio `quote_number`, no sobrescribas la anterior. El histórico de versiones es evidencia comercial.
 - **Cotización en USD**: pon `currency='USD'` y deja los montos en USD, sin convertir.
 - Al terminar, dile al usuario en una línea qué quedó registrado: folio, cliente y total.
+
+### Archivado recuperable del PDF — llamar `archivar-cotizacion` (parte del PASO FINAL)
+
+**Por qué existe esta regla (20-ago-2026):** `pdf_path` guarda hoy una ruta del escritorio de Héctor (`C:\Users\Kotty\Desktop\...`). Una cotización que solo existe en una máquina no está archivada, está **guardada**. Si esa máquina se formatea, se pierde el documento exacto que el cliente recibió — y ese PDF es evidencia comercial: qué se prometió, a qué precio, con qué vigencia y en qué versión. La fila en `quotes` dice que la cotización existe; el archivado es lo único que dice dónde recuperarla.
+
+**Solo se archiva la versión FINAL, la que se le entrega al cliente.** Los borradores intermedios no se suben: llenan el bucket de documentos que nadie va a volver a abrir y, peor, vuelven ambiguo cuál fue el que se mandó. Si dudas si ese PDF es el definitivo, no lo archives todavía — archívalo cuando se entregue.
+
+**La llave es el FOLIO, no el uuid.** La función busca la fila por `quote_number` y hace upsert: si el folio ya existe la actualiza, si no la crea. Por eso llamarla dos veces con el mismo folio **no duplica** — reemplaza el PDF y borra el anterior del bucket. Mandar `quote_id` no sirve de nada: la función lo ignora y contesta `400 quote_number (folio) es obligatorio`.
+
+**Va autenticada con el header `x-archivar-secret`.** Sin él la función contesta `401 Falta el header x-archivar-secret` antes de mirar el cuerpo. El secreto vive en el Vault de Supabase como `ARCHIVAR_COTIZACION_SECRET`; se lee con el MCP y se pasa por variable de ambiente. **Nunca lo escribas dentro del script, ni en el repo, ni en un archivo del escritorio.**
+
+```sql
+-- Léelo justo antes de usarlo; no lo guardes en ningún lado.
+select decrypted_secret from vault.decrypted_secrets where name = 'ARCHIVAR_COTIZACION_SECRET';
+```
+
+Después del `insert ... returning id`, con el **folio** de la cotización:
+
+```bash
+# Sube el PDF final al bucket y sella la fila. Ajusta las rutas y el folio.
+# El secreto entra por ambiente para que no quede escrito en el script.
+ARCHIVAR_SECRET='<el del Vault>' python - <<'PY'
+import base64, json, os, urllib.request
+FOLIO = "COT-2026-XXXX"          # el mismo que insertaste en quotes
+PDF   = r"C:\Users\Kotty\Desktop\Cotizacion_Cliente_v1.pdf"
+URL   = "https://clnirhdxsohtrcjsuntw.supabase.co/functions/v1/archivar-cotizacion"
+payload = {
+    "quote_number": FOLIO,       # OBLIGATORIO: es la llave del upsert
+    "pdf_name": os.path.basename(PDF),
+    "pdf_base64": base64.b64encode(open(PDF, "rb").read()).decode(),
+    "es_final": True,            # solo la que se entrega; un borrador jamás va con true
+    "version": "1.0",            # TEXTO, no número. Ver la regla de formato abajo.
+    # Si el folio es NUEVO para la función, además son obligatorios:
+    # "client_company": "...",   # sin esto contesta 400
+    # "cliente_id": "<uuid>",    # el que apaga el falso positivo de Steve
+}
+req = urllib.request.Request(URL, data=json.dumps(payload).encode(),
+                             headers={"Content-Type": "application/json",
+                                      "x-archivar-secret": os.environ["ARCHIVAR_SECRET"]})
+print(urllib.request.urlopen(req).read().decode())
+PY
+```
+
+Respuesta buena: `ok:true`, `pdf_storage_path`, `bytes` y una `url_firmada` de 1 hora. Revisa también `versiones_degradadas_del_mismo_cliente`: si trae un número mayor a 0, acabas de marcar como no-final esa cantidad de cotizaciones viejas de ESE cliente. Si esperabas 0 y salió otra cosa, párale y revisa antes de seguir.
+
+**Cómo recuperar el PDF después** (esto es para lo que sirve todo lo anterior):
+
+```bash
+# Por folio exacto devuelve ESE documento aunque ya no sea la versión final.
+# Por nombre de cliente devuelve la FINAL vigente.
+curl -s -H "x-archivar-secret: $ARCHIVAR_SECRET" \
+  "https://clnirhdxsohtrcjsuntw.supabase.co/functions/v1/archivar-cotizacion?buscar=COT-2026-XXXX"
+```
+
+Devuelve la fila, `url_firmada` (1 hora) y un `aviso` que avisa solo cuando el folio ya fue superado por una versión más nueva, o cuando la fila existe pero **nunca se archivó el PDF**. Ese aviso es el que hay que leer antes de decirle a alguien que la cotización está respaldada.
+
+Reglas:
+
+- **La función escribe `pdf_storage_path`, `es_final`, `version` y `archivada_en`. No las escribas tú por SQL.** Si las llenas a mano queda la ruta apuntando a un archivo que nunca se subió, que es peor que dejarlas nulas: miente diciendo que sí hay respaldo.
+- **`pdf_path` no se toca.** Sigue siendo la ruta local y sigue sirviendo para abrir el archivo en la máquina de Héctor. El archivado se suma, no reemplaza.
+- **`version` se manda SIEMPRE y como texto, con el formato `"1.0"`, `"2.0"`.** Si lo omites, la función lo adivina del nombre del archivo y escribe `"v1"` — y entonces la tabla acaba con dos formatos conviviendo (`1.0` junto a `v1`), que es exactamente lo que vuelve inútil ordenar por versión. Mandarlo explícito cuesta un renglón y evita el desorden.
+- Si la función responde 404 o se queja de un campo, **no inventes el contrato**: revísalo con el MCP de Supabase (`get_edge_function`, slug `archivar-cotizacion`) y usa los nombres reales. Si todavía no está desplegada, deja la fila registrada en `quotes`, dilo en el resumen final y **no des la cotización por archivada**.
+- **Verifica que de verdad quedó, no que el POST no dio error.** Un `ok:true` dice que subió; lo que prueba el archivado es bajarlo. Consulta `select quote_number, respaldada from public.v_cotizaciones_finales` — la columna `respaldada` dice de un vistazo qué filas todavía no tienen PDF en el bucket.
+- **Versión nueva → archivo nuevo.** Igual que con la fila: la v2 se archiva aparte, nunca encima de la v1. El histórico es exactamente lo que sirve el día que el cliente pregunta "¿esto no era otro precio?".
+- Al terminar, la línea de cierre del paso menciona las dos cosas: folio registrado y PDF archivado.
+
+## PASO DE APRENDIZAJE — Qué se lleva el skill de esta cotización
+
+Entregado el PDF, registrada la fila y archivado el documento, queda una pregunta: **¿pasó algo aquí que habría cambiado el resultado de la SIGUIENTE cotización, con otro cliente?**
+
+Casi siempre la respuesta es no, y está bien. **Cero aprendizajes es un resultado honesto y frecuente.** El filtro es exigente a propósito: un skill que engorda en cada corrida deja de leerse completo, y un skill que no se lee completo no gobierna nada. Se prefiere un skill corto que se obedece a uno largo que se hojea.
+
+### Qué SÍ entra — los tres filtros, y hay que pasar los tres
+
+1. **Es general.** Aplica a cotizaciones de otros clientes, no solo a éste.
+2. **Habría cambiado el resultado.** Si la regla hubiera estado escrita, el documento habría salido distinto. No basta con que "hubiera estado bueno saberlo".
+3. **No está ya escrita.** Lee completa la sección donde iría antes de agregar. Si ya está dicha con otras palabras, no se agrega nada; a lo mucho se le suma el caso nuevo como evidencia de que reincide.
+
+Ejemplo real de algo que sí entró (20-ago-2026): la cotización de Mr. Cocoa prometía *"IA incluida"* en una plataforma que no llama a ningún modelo. De ahí salió la regla *"Solo se promete lo que está construido y no cuesta por uso"* — general, habría cambiado el documento, y no estaba escrita en ningún lado.
+
+### Qué NO entra
+
+- El precio de este cliente, su mensualidad, su descuento, su plazo.
+- El nombre de un módulo, un dolor, un KPI, una fase del cronograma.
+- Cualquier dato del caso. **Eso vive en `quotes` y en el PDF archivado, no aquí.** El skill dice *cómo* se cotiza; la base dice *qué* se le cotizó a quién.
+- Una preferencia que Héctor pidió una sola vez para un cliente en particular. Si la vuelve a pedir en otra cotización, ahí ya es regla y ahí sí se escribe.
+- Un error de dedo, un archivo que no abrió, una conversión de PDF que falló. Eso es ruido de la corrida, no conocimiento.
+
+### Cómo se escribe
+
+- **Solo se AGREGA. Nunca se reescribe ni se borra lo que ya está.** El 20-ago-2026 este mismo archivo estuvo a un comando de perder las 34 líneas del PASO FINAL porque una instrucción decía "sobrescribe". Una regla vieja que estorba se marca, se discute con Héctor y él decide; no se retira en automático al vuelo de una corrida.
+- **Va en la sección temática que le toca**, no al final. Una regla de qué prometer va en *"Solo se promete lo que está construido y no cuesta por uso"*; una de redacción o diseño en *"Formato de salida"*; una de riesgo legal como renglón nuevo del *"Checklist de huecos legales"*; algo que nunca debe hacerse, en *"Anti-patrones"*. **No abras un cajón de "notas" al final**: un cajón de notas es donde las reglas se mueren sin que nadie las lea.
+- **Cada aprendizaje trae FECHA y CASO.** Sin el caso, en tres meses la regla parece arbitraria y alguien la quita. El caso es la defensa de la regla.
+- Formato del renglón, una línea o dos:
+  `- **<La regla, en imperativo y sin rodeos>.** <Qué habría cambiado si hubiera estado escrita.> *(DD-mmm-AAAA · <cliente o caso que la produjo>)*`
+- Si el aprendizaje necesita más de dos líneas para entenderse, es una sección, no un bullet: escríbelo como sección corta con su propio encabezado y su párrafo de **Origen (fecha · caso)**, igual que las que ya existen.
+- Máximo **dos aprendizajes por corrida**. Si te salieron cinco, no son aprendizajes: es una lista de detalles del caso. Quédate con el que más habría cambiado el documento.
+
+## PASO DE PUBLICACIÓN — Subir el skill aprendido a GitHub
+
+**Si no hubo aprendizajes, aquí termina: NO hay commit.** Un repo con veinte commits vacíos esconde los tres que sí cambiaron algo. No se sube un "sin cambios", no se toca la fecha, no se hace commit vacío.
+
+Si sí hubo, se publica sobre `skills/cotizacion-saas/SKILL.md` del repo `scrumexpress-cell/kott-claude-skills`:
+
+1. **Compara primero contra el remoto, exactamente igual que en el PASO 0.** Aunque el PASO 0 ya haya corrido al principio: entre el inicio y el cierre de una cotización pueden pasar horas y otra máquina pudo publicar. **Normaliza `\r\n` → `\n` de ambos lados antes de comparar**; sin eso un archivo idéntico se reporta como completamente distinto y la comparación no sirve.
+   - **El remoto trae algo que el local no tiene → intégralo al local ANTES de subir.** Nunca lo pises: se perderían reglas ajenas que ya se estaban usando.
+   - Solo cuando el local sea el remoto **más** los aprendizajes de hoy, se sube.
+2. Clona somero, copia el local **normalizado a LF**, y sube:
+
+```bash
+gh repo clone scrumexpress-cell/kott-claude-skills /tmp/kott-skills -- --depth 1
+python - <<'PY'
+src = r"C:\Users\Kotty\.claude\skills\cotizacion-saas\SKILL.md"
+dst = "/tmp/kott-skills/skills/cotizacion-saas/SKILL.md"
+# LF de un solo lado: el repo guarda LF y así el diff muestra los renglones que
+# de verdad cambiaron, no el archivo entero por un cambio de fin de línea.
+open(dst, "wb").write(open(src, "rb").read().replace(b"\r\n", b"\n"))
+PY
+cd /tmp/kott-skills
+git diff --stat            # si sale vacío, NO hay nada que subir: detente aquí
+git add skills/cotizacion-saas/SKILL.md
+git commit -F - <<'MSG'
+skill(cotizacion-saas): <la regla aprendida, en una línea>
+
+<Qué habría cambiado si la regla hubiera estado escrita, en 1-2 líneas.>
+Caso: <cliente o cotización que lo produjo>, <fecha>.
+MSG
+git push
+```
+
+- **El mensaje del commit dice QUÉ se aprendió y DE QUÉ CASO, nunca "update skill" ni "mejoras".** El `git log` de este archivo es la historia de por qué el skill es como es; un log de "update" la borra.
+- El caso sí se nombra en el mensaje y en la nota de origen (es la procedencia de la regla). Lo que nunca entra al skill son los **parámetros** del caso: precios, montos, nombres de módulos.
+- Si `gh` falla o no hay red, **no dejes el aprendizaje solo en la máquina**: dile a Héctor que quedó en el local sin publicar, para que se suba en la siguiente corrida.
+- **Vigila el tamaño.** Si el SKILL.md pasa de ~500 líneas, lo que toca es mover material a `references/` (p. ej. los modelos comerciales o el checklist legal, como archivo aparte referenciado desde aquí), **no seguir apilando**. Un skill que ya no cabe en la cabeza de quien lo lee es un skill que se ignora.
+
+**Cierre, siempre una línea a Héctor:** o *"Aprendí X del caso Y y ya está subido al repo"*, o *"De esta cotización no salió nada general; no hubo commit"*. Las dos son respuestas buenas; el silencio no.
 
 ## Solo se promete lo que está construido y no cuesta por uso (REGLA DURA)
 
