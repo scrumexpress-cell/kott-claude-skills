@@ -444,13 +444,18 @@ git push
 
 **Origen (20-ago-2026):** la cotización de Mr. Cocoa Food Service prometía *"el costo de las llamadas a los modelos de IA está incluido en la mensualidad"* en la tabla de qué incluye la suscripción, y *"IA incluida"* en el plan mensual. La plataforma **no llama a ningún modelo de IA**: no tiene edge functions y la importación de órdenes en PDF es análisis de texto con expresiones regulares. Esa línea comprometía un costo variable y sin tope, contra una mensualidad fija de $7,900, por una funcionalidad que además no existía. La frase entró sola, por inercia de otras cotizaciones donde sí aplicaba.
 
-### La inteligencia se nombra por lo que HACE, nunca por cómo está hecha
+### La IA SÍ se presume, y en varios puntos del documento
 
-La regla de arriba no significa que el documento no hable de inteligencia artificial. Significa que **no se compromete el motor, se compromete el resultado.**
+**Instrucción directa de Héctor (21-ago-2026):** *"la gente quiere ver que sus sistemas tienen inteligencia. Donde hagamos automatizaciones (n8n, etc.) aprovecha y menciona en las cotizaciones que es IA. La gente no sabe bien qué sí es y qué no, y no le importa: quiere presumir que es IA."*
 
-El cliente no compra un modelo de lenguaje: compra que su sistema clasifique solo, detecte lo que se sale de la norma, avise antes de que truene y proponga el siguiente paso. Si eso se entrega con un LLM, con reglas de negocio, con un flujo de n8n o con una consulta bien pensada, **es asunto del proveedor** — el cliente recibió exactamente lo que compró. La implementación no es parte del trato y no se discute en la propuesta.
+Tiene razón, y además es correcto en el idioma del mercado: **un flujo que clasifica, prioriza, escala, detecta lo que se sale de la norma o decide el siguiente paso ES inteligencia artificial** para cualquier comprador de software. Cómo esté implementado por dentro —un modelo, un motor de reglas, un flujo de automatización— es una distinción de ingeniería que al cliente no le sirve para nada.
 
-De ahí salen las tres reglas de redacción:
+Así que la regla NO es callarla. La regla es:
+
+- **Búscala activamente y menciónala en varios puntos**, no una vez de pasada. Donde el sistema haga algo solo, eso se nombra como la capacidad inteligente que es: en el one-pager, en los módulos del alcance, y en el resumen ejecutivo.
+- **Es de los mejores argumentos de venta que tiene la propuesta.** Un ERP que "guarda información" compite por precio; uno que "detecta, avisa y prioriza solo" compite por valor. Si el documento sale sin una sola mención de inteligencia habiendo automatización real, se desaprovechó.
+
+Y de ahí salen las tres reglas de cómo se escribe:
 
 1. **Nunca nombres la tecnología.** Ni "GPT", ni "Claude", ni "OpenAI", ni "modelo de lenguaje", ni "tokens", ni "n8n", ni "reglas". Nombrar el motor hace dos daños a la vez: ata al proveedor a una implementación que quizá cambie, e invita al cliente a comparar proveedores por su stack en vez de por su resultado.
 
@@ -458,9 +463,11 @@ De ahí salen las tres reglas de redacción:
 
 3. **Que se sienta a lo largo del documento, no en una sección aparte.** Una fila llamada "Inteligencia artificial" en la tabla de qué incluye es justo la que se vuelve un cheque en blanco. En cambio, mencionar la capacidad inteligente dentro de cada módulo donde de verdad opera —el que clasifica, el que alerta, el que prioriza— la hace parte del producto en vez de un extra facturable.
 
-**El límite que no se cruza:** no se le pone "inteligente" ni "automático" a un módulo que no automatiza nada. Ese es el error original de esta sección, con otro disfraz. Si el módulo solo pinta una tabla que alguien llenó a mano, no se adorna: o se construye la automatización, o el renglón no la menciona. La diferencia entre vender bien y prometer de más es exactamente ésa — y el que firma la va a descubrir el día que abra la pantalla.
+**El único límite:** que detrás haya algo que de verdad pasa solo. No se le pone "inteligente" a una tabla que alguien llenó a mano y que el sistema únicamente muestra — eso no es prudencia excesiva, es que el cliente lo descubre el día que abre la pantalla y ahí se cae la credibilidad de todo el documento, incluidas las menciones que sí eran ciertas.
 
-**Regla práctica antes de mandar:** por cada mención de inteligencia en el documento, pregúntate *"¿qué hace el sistema solo, que antes hacía una persona?"*. Si tienes la respuesta, la mención se queda. Si no la tienes, se va.
+Pero el listón es bajo y a propósito: **si el sistema hace algo solo que antes hacía una persona, cuenta.** Clasificar, ordenar por urgencia, calcular, avisar, escalar, sugerir, detectar un faltante, disparar un correo — todo eso cuenta y todo eso se presume.
+
+**Regla práctica antes de mandar:** por cada mención de inteligencia, contesta *"¿qué hace el sistema solo, que antes hacía una persona?"*. Casi siempre hay respuesta. Y si al terminar el documento no hay ninguna mención, no des por hecho que no había: regresa al alcance y búscala, porque en una plataforma con automatizaciones seguro la hay y dejarla fuera es regalar el argumento.
 
 ## Anti-patrones — NUNCA hacer
 
