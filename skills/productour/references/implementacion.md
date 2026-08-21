@@ -55,6 +55,74 @@ export interface Tour {
 }
 ```
 
+### Las etapas se derivan del recorrido, no se escriben aparte
+
+Una etapa es **un tramo del recorrido del negocio**, marcado por índices. Escribir los pasos dos veces —una en el recorrido completo y otra en el tour de módulo— es lo que hace que se desincronicen a la primera corrección.
+
+```ts
+export interface Etapa {
+  /** 1, 2, 3… El número que ve el usuario. */
+  numero: number
+  /** Qué pasa en el negocio: "Se consigue al cliente". No el nombre del módulo. */
+  titulo: string
+  descripcion: string
+  /** Índices dentro de tourNegocio.pasos: [desde, hasta) */
+  rango: [number, number]
+}
+
+/** El tour de una etapa: los mismos pasos del recorrido, cortados. */
+export function tourDeEtapa(negocio: Tour, e: Etapa, total: number): Tour {
+  const pasos = negocio.pasos.slice(...e.rango)
+  return {
+    id: `etapa-${e.numero}`,
+    nombre: `${e.numero}. ${e.titulo}`,
+    // El tour de etapa nunca es un callejón sin salida: dice dónde está parado.
+    descripcion: `Etapa ${e.numero} de ${total}. ${e.descripcion}`,
+    minutos: Math.max(1, Math.round((pasos.length * 20) / 60)),
+    tipo: 'modulo',
+    pasos,
+  }
+}
+```
+
+Y la numeración que ve el usuario es **continua sobre el recorrido completo**, no reiniciada por etapa: es el número lo que le dice cuánto falta.
+
+```ts
+// driver.js numera dentro del tour que está corriendo, así que el desplazamiento
+// se pasa explícito para que la etapa 3 empiece en "paso 8 de 20" y no en "1 de 4".
+progressText: `paso {{current}} de ${negocio.pasos.length}`,
+// …con los pasos de la etapa desplazados por e.rango[0] al construir los DriveStep.
+```
+
+### Cambiar de puesto en vez de bloquear
+
+Si una pantalla está protegida por rol, el tour **cambia el rol y lo devuelve**. Nunca deshabilita el botón.
+
+```ts
+const rolOriginal = useRef<Rol | null>(null)
+
+// Antes de resaltar: si el paso declara un puesto y no es el activo, se cambia.
+onHighlightStarted: (_el, _step, opts) => {
+  const p = tour.pasos[opts.state.activeIndex ?? 0]
+  if (p?.rol && p.rol !== rol) {
+    if (rolOriginal.current === null) rolOriginal.current = rol   // guardar UNA vez
+    setRol(p.rol)
+  }
+  …
+},
+
+// Se restaura SIEMPRE, incluso si el usuario cierra a media marcha: onDestroyed
+// corre también al oprimir Esc o la ✕, que es justo cuando se quedaba cambiado.
+onDestroyed: () => {
+  if (rolOriginal.current !== null) {
+    setRol(rolOriginal.current)
+    rolOriginal.current = null
+  }
+},
+```
+
+El cambio se cuenta en la narración, porque es parte de la historia y no un tecnicismo: *"esta pantalla la abre compras — te pongo en ese puesto para que la veas"*.
+
 ---
 
 ## 3. El hook que corre el tour

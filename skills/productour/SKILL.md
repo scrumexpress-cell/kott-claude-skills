@@ -76,9 +76,49 @@ Tres piezas. La estructura vive completa en `references/implementacion.md`, con 
 
 **2. La definición de los tours**, en un archivo de datos separado del código: `src/tours/<modulo>.ts`, más un `src/tours/index.ts` que los registra. Que sean datos y no componentes importa: así se corrigen sin tocar la aplicación, y Héctor puede pedir un cambio de texto sin que sea un desarrollo.
 
-**3. La pantalla `/product-tour`**, hasta abajo del menú, con:
-- El **recorrido completo del negocio** arriba, con su duración estimada.
-- Los **tours por módulo** debajo, en tarjetas.
+**3. La pantalla `/product-tour`**, hasta abajo del menú. Cómo se arma, abajo.
+
+## La pantalla es un proceso numerado, no una rejilla de módulos
+
+**Éste es el error que hay que evitar, y es el que salió en la primera versión de todas.** La pantalla quedó como una cuadrícula de tarjetas —"Un módulo a la vez", once recuadros— y una cuadrícula no dice en qué orden pasan las cosas. El lector ve once cosas sueltas y no sabe cuál va primero, que es justo lo que el tour existe para contar.
+
+La pantalla tiene que verse como **el proceso de la empresa, numerado y en orden**:
+
+```
+ETAPA 1 · Se consigue al cliente
+   Pantallas: Contenido → CRM → Agenda del showroom
+   ▸ Recorrer esta etapa (3 pantallas · 4 pasos · 2 min)
+
+ETAPA 2 · El cliente arma su cocina y se cotiza
+   Pantallas: Cotizador → Cotizaciones → Administración (anticipo)
+   ▸ Recorrer esta etapa …
+
+ETAPA 3 · Entra a producción
+   …
+```
+
+Reglas que hacen que se lea como una historia:
+
+- **Las etapas van numeradas y en el orden en que ocurren**, con un título que dice qué pasa en el negocio ("Se consigue al cliente"), no cómo se llama el módulo.
+- **Cada etapa nombra las pantallas que la componen**, en su orden. Así se ve que la etapa 2 usa tres pantallas y que una de ellas es Administración, aunque en el menú esté lejos.
+- **Los pasos se numeran de corrido a lo largo de todo el recorrido**: "paso 7 de 20", no "paso 2" reiniciando en cada módulo. El número es lo que le dice a quien mira cuánto falta.
+- **Cada tour de etapa dice dónde está parado**: "Etapa 2 de 6 · después de esto sigue Producción". Un tour de módulo nunca es un callejón sin salida: termina insinuando la etapa siguiente y ofreciendo entrar a ella.
+- **Arriba, el recorrido completo**, que es la suma de las etapas de corrido — para presentar. Las etapas son el mismo camino en tramos, para aprender.
+
+El recorrido completo y las etapas **son la misma lista de pasos**, cortada. No se escriben dos veces: los tours de etapa se derivan del recorrido del negocio marcando dónde empieza y termina cada tramo. Si se escriben aparte, se desincronizan a la primera corrección.
+
+## El tour jamás se cierra por puesto
+
+**Cualquier usuario de cualquier plataforma tiene acceso al tour completo. Sin excepción.** Un botón "Ver" deshabilitado con la leyenda *"Este módulo no es de tu puesto"* es un defecto, no una medida de seguridad: el tour existe para **enseñar cómo trabaja la empresa entera**, y alguien de compras necesita entender de dónde le llega el pedido tanto como el director.
+
+El problema real que lo provocó es legítimo: si la ruta está protegida por rol, el tour rebota a media demostración. La solución **no** es bloquear el tour, es que **el tour cambie el puesto por su cuenta**:
+
+1. Antes de entrar a una pantalla que el puesto activo no abre, el tour cambia el rol al que sí la abre.
+2. Lo dice en la narración, en una línea, porque es parte de la historia: *"esta pantalla la abre compras — te pongo en ese puesto para que la veas"*.
+3. **Al terminar el tour se restaura el puesto original**, siempre, incluso si el usuario lo cierra a media marcha (en el `onDestroyed`).
+
+Si la plataforma no tiene forma de cambiar de rol en el cliente, entonces el tour se recorre en modo lectura y se dice; lo que nunca se hace es esconder la etapa.
+
 - Un **interruptor Demo / Aprender** que cambia la narración.
 - Marca de cuáles ya vio el usuario (en `localStorage`, sin tabla nueva).
 
