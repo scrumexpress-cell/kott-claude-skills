@@ -124,25 +124,17 @@ Si algún día pide cambiarlo, cámbialo aquí en el skill para que valga para t
 
 **Nunca inventes credenciales.** Si `demo_url` o `demo_passcode` vienen vacíos, no te los imagines: deja el bloque señalado como pendiente y avísale a Héctor en el resumen. Un cliente que intenta entrar con una clave inventada pierde la confianza en el primer minuto.
 
-**5. La firma de Grupo AED. Va siempre, en todos los correos.**
+**5. La firma: NO la pongas. El correo termina en el agradecimiento.**
 
-Outlook **no** le pega su firma a un borrador creado por esta vía —eso solo pasa cuando él escribe el correo a mano—, así que si no la pones, el correo sale sin ella. Ésta es la real, tomada de su correspondencia:
+Héctor tiene una sola firma de Grupo AED guardada en Outlook, en HTML, con el logo del árbol, la barra naranja al costado y los dos botones —*Agenda una videollamada* y *Mándame un WhatsApp*— funcionando. Es buena y es la que debe salir.
 
-```html
-<hr>
-<p><strong>Héctor Morales Kott</strong><br>
-Director Comercial<br>
-<strong>Agilidad en Digital</strong></p>
-<p>Automatizamos con agentes IA, desarrollamos software a la medida, apps móviles, dashboards y flujos inteligentes.</p>
-<p>+52 55 8065 7691<br>
-<a href="mailto:hector@agilidadendigital.com">hector@agilidadendigital.com</a><br>
-<a href="https://www.agilidadendigital.com/">agilidadendigital.com</a></p>
-<p><a href="https://cal.com/grupoaed/30min">Agenda una videollamada</a> &nbsp;·&nbsp; <a href="https://wa.me/525580657691">Mándame un WhatsApp</a></p>
-```
+**No se puede meter desde aquí, y no por falta de intentarlo.** La lista blanca de Outlook rechaza el correo completo si el HTML trae `style=`, `class=`, `id=` o `<img>`, que es exactamente de lo que está hecha esa firma. Probado: el API responde `VALIDATION_ERROR · html_sanitize_rejected`.
 
-Como va la firma, **el correo ya no se despide con "Héctor Morales / Agilidad en Digital" escrito a mano**: cierras con el agradecimiento y de ahí pasa a la firma. Repetir el nombre dos veces se ve descuidado.
+Lo que NO hay que hacer —y se hizo una vez— es escribir una imitación en texto plano con los mismos datos. Se ve peor que la suya, y le cambia una firma diseñada por una lista de renglones. Un remedo de la firma es peor que ninguna firma.
 
-Su firma original trae color naranja y los dos enlaces como botones, pero **la lista blanca de Outlook rechaza `style=` y `span`**, así que por esta vía sale en texto plano con las ligas vivas. Dilo en tu resumen: si la quiere con su diseño, borra ese bloque y usa *Insertar → Firma* en Outlook, que le pone la buena.
+Entonces: **cierras el cuerpo con el agradecimiento y ya.** En tu resumen final dile que le ponga la firma con *Insertar → Firma* en Outlook, que es un clic y le pone la buena, con logo y botones.
+
+Y como no va firma en el cuerpo, **el correo sí se despide por escrito**: después del agradecimiento, una línea con su nombre. Sin ella el correo termina en seco.
 
 ## Cómo se crea el borrador
 
