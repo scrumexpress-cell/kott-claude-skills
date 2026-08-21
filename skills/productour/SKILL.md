@@ -1,0 +1,103 @@
+---
+name: productour
+description: "Construye el módulo Product Tour dentro de una plataforma de AED: un recorrido interactivo que cuenta cómo opera el negocio del cliente, módulo por módulo, en el orden real en que trabaja — no en el orden del menú. Sirve para dos cosas a la vez: darle a Héctor un guion para presentar la demo sin perderse, y que un usuario nuevo aprenda la plataforma sin leer un manual. Úsalo siempre que se hable de: product tour, tour de producto, recorrido guiado, onboarding, walkthrough, demo guiada, guion de demo, presentar la plataforma, tutorial interactivo, que el cliente aprenda a usar el sistema, o cuando pida un tour para alguna de sus plataformas (Cucina Capitale, lPet, Mr. Cocoa, DonPan, NIXGO, Trasenda, Jovi, Promasa, Solarium…). También cuando una demo esté lista y haya que prepararla para enseñarla."
+---
+
+# Product Tour: la plataforma contando cómo trabaja el negocio
+
+Este skill construye un módulo llamado **Product Tour** dentro de cada plataforma, hasta abajo del menú. Adentro hay recorridos interactivos que van resaltando pantallas y explicando qué hace cada una — pero **el orden no es el del menú: es el orden en que el negocio del cliente opera de verdad**.
+
+En Cucina Capitale eso significa empezar por marketing —cómo se arma un post de Instagram— porque ahí nace el cliente; seguir con el prospecto que pide informes, el diseño de su cocina, la cotización, la producción en planta, la instalación en obra, y terminar cuando se cobra la última estimación y queda registrada en administración. Ese recorrido *es* el negocio. El menú, en cambio, está ordenado por conveniencia técnica.
+
+## Por qué existe, y por qué son dos cosas distintas
+
+**Uno: que Héctor no se pierda presentando.** Una demo con veinte módulos se presenta mal si se navega improvisando. El tour le da un guion con orden, y cada paso trae qué decir. Deja de ser "déjame busco dónde estaba eso" y pasa a ser una historia que avanza.
+
+**Dos: que el usuario nuevo no lea un manual.** Nadie lee manuales. Un recorrido que le va enseñando su propia pantalla, con sus propios datos, sí se termina.
+
+Los dos usan el mismo recorrido, pero **la narración cambia de destinatario** y eso hay que respetarlo:
+
+| | Modo demo (Héctor presentando) | Modo aprendizaje (usuario solo) |
+|---|---|---|
+| A quién le habla | Al dueño que está decidiendo comprar | Al empleado que va a usarlo mañana |
+| Qué resalta | Qué problema suyo resuelve esta pantalla | Qué botón toca y qué pasa después |
+| Tono | "Esto es lo que nos contaste que te dolía" | "Aquí capturas tu pedido" |
+| Duración | 8–12 minutos, la historia completa | Por módulo, 60–90 segundos cada uno |
+
+Un mismo paso se escribe distinto para cada modo. Ese par de textos es el trabajo real de este skill; lo técnico es la parte fácil.
+
+## Lo primero: reconstruir el flujo del negocio
+
+**Aquí es donde este tour se gana la vida, y es el paso que no se puede saltar.** Antes de escribir un solo paso, hay que saber cómo trabaja ese negocio — y eso no se deduce del código, se lee de sus juntas.
+
+```sql
+select titulo, fecha_reunion::date, resumen, notas_importantes, contactos
+from biblio_reuniones_notas
+where cliente_id = '<id>'
+order by fecha_reunion;
+```
+
+De ahí sale lo que importa:
+
+1. **Dónde empieza el dinero.** ¿Un post de Instagram? ¿Un vendedor en la calle? ¿Una licitación? Ése es el paso 1, aunque en el menú esté hasta abajo.
+2. **Por dónde pasa después.** Sigue el rastro de una venta desde que aparece hasta que se cobra. Ese rastro es el recorrido.
+3. **Quién toca qué.** En las juntas cada persona habla de su parte: Jennifer del CRM, Miguel de compras, Juan Carlos de administración. Esos nombres y esas frases son el guion.
+4. **Qué les dolía.** Cada paso del tour debería poder decir, sin inventar, "esto es lo que nos contaste".
+
+**Si el cliente no tiene juntas registradas, dilo y construye el tour desde la plataforma.** Sale más plano, pero es honesto. Lo que nunca se hace es inventarle al cliente un proceso que nunca describió: en la presentación se nota en tres segundos y se pierde la sala.
+
+## Cómo se escribe cada paso
+
+Cada paso apunta a un elemento real de la pantalla y trae su narración. Reglas que salieron de lo que funciona:
+
+- **Título corto, en la voz del negocio.** "Aquí nace el cliente", no "Módulo de Contenido". El nombre del módulo ya está en el menú.
+- **Dos o tres frases, no más.** Un tour que hay que leer no se termina. Si algo necesita cinco líneas, es dos pasos.
+- **Habla de lo que la persona va a hacer**, no de lo que el sistema tiene. "Desde aquí mandas el pedido a facturación sin recapturarlo" pega; "módulo de captura con integración" no.
+- **Encadena.** Cada paso termina insinuando el siguiente: *"…y cuando facturación lo libera, se va a producción"*. Eso es lo que convierte una lista de pantallas en una historia.
+- **Nombra la inteligencia donde la haya**, con lo que hace: *"el sistema detecta solo si este hallazgo ya lo levantó otra área"*. Y solo donde de verdad algo pasa solo — un adorno falso aquí se descubre en vivo, frente al cliente, que es el peor lugar posible.
+
+## Qué se construye, en concreto
+
+Tres piezas. La estructura vive completa en `references/implementacion.md`, con el código listo para copiar.
+
+**1. El motor.** `driver.js` (MIT, cero dependencias, ~5 KB). Se instala con `npm i driver.js`. Nada de servicios de terceros: Userpilot, Appcues y Pendo cuestan cientos de dólares al mes, hospedan los datos fuera y contradicen la promesa de que el código es del cliente.
+
+**2. La definición de los tours**, en un archivo de datos separado del código: `src/tours/<modulo>.ts`, más un `src/tours/index.ts` que los registra. Que sean datos y no componentes importa: así se corrigen sin tocar la aplicación, y Héctor puede pedir un cambio de texto sin que sea un desarrollo.
+
+**3. La pantalla `/product-tour`**, hasta abajo del menú, con:
+- El **recorrido completo del negocio** arriba, con su duración estimada.
+- Los **tours por módulo** debajo, en tarjetas.
+- Un **interruptor Demo / Aprender** que cambia la narración.
+- Marca de cuáles ya vio el usuario (en `localStorage`, sin tabla nueva).
+
+## El detalle que rompe todo si se ignora
+
+Un tour resalta elementos del DOM por selector. **Un selector que apunta a una clase de Tailwind o a una posición se rompe la próxima vez que alguien toque el diseño**, y se rompe en silencio: el paso simplemente no resalta nada, y se descubre presentando.
+
+Por eso: **cada elemento que el tour toca lleva su propio `data-tour="nombre"`** en el componente, y el paso apunta a `[data-tour="nombre"]`. Es un atributo que nadie borra por accidente al reacomodar clases, y deja escrito en el código que ese elemento es parte de un recorrido.
+
+Los pasos que cambian de ruta necesitan esperar a que la pantalla cargue. El patrón está resuelto en `references/implementacion.md`; no lo reinventes.
+
+## Cómo se prueba
+
+**Un tour no está listo hasta que se corrió completo en la plataforma viva.** Es la diferencia entre esto y un archivo de texto bonito.
+
+Con Playwright, recorre cada paso y verifica que el elemento existe y es visible. Si un selector no encuentra nada, el tour está roto aunque compile. Hay un script listo en `references/verificar-tour.mjs` que recorre un tour entero y reporta los pasos que no resaltan.
+
+Y después, **recórrelo tú como si estuvieras presentando**: lee la narración de corrido y pregúntate si cuenta una historia o si es una lista de pantallas. Ese juicio no lo hace un script.
+
+## Cuando la plataforma no está lista
+
+No todas dan para un tour completo, y forzarlo produce algo peor que nada:
+
+- **Módulo vacío**: si una pantalla no tiene datos sembrados, no la incluyas. Un paso que resalta una tabla en blanco resta.
+- **Demo sin backend vivo**: verifica que la plataforma de verdad responde antes de empezar. Un tour sobre pantallas en ceros es una demostración de que el sistema no funciona.
+- **Sin juntas y sin datos**: haz el tour técnico —qué hace cada módulo— y dile a Héctor que con una junta de descubrimiento se vuelve el bueno.
+
+## Al terminar
+
+Dile a Héctor, corto:
+- Qué plataformas quedaron con tour y cuántos pasos tiene cada una.
+- El recorrido del negocio en una línea, para que confirme que así opera el cliente. **Ese es el punto que más vale que revise**: si el orden está mal, el tour cuenta una historia falsa.
+- Qué módulos se dejaron fuera y por qué.
+- Que puede cambiar cualquier texto pidiéndolo, porque viven en archivos de datos.
