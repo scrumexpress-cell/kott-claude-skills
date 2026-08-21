@@ -56,6 +56,18 @@ Cada paso apunta a un elemento real de la pantalla y trae su narración. Reglas 
 - **Encadena.** Cada paso termina insinuando el siguiente: *"…y cuando facturación lo libera, se va a producción"*. Eso es lo que convierte una lista de pantallas en una historia.
 - **Nombra la inteligencia donde la haya**, con lo que hace: *"el sistema detecta solo si este hallazgo ya lo levantó otra área"*. Y solo donde de verdad algo pasa solo — un adorno falso aquí se descubre en vivo, frente al cliente, que es el peor lugar posible.
 
+### Antes de escribir un paso, abre el código de esa pantalla
+
+No basta con que la frase suene defendible: hay que ver qué hace la función que está detrás. Los tres engaños que salieron en la primera tanda, todos en pantallas que se veían perfectas:
+
+- **Un banco de textos fijos disfrazado de IA.** Un `setTimeout` de 700 ms pintando *"Redactando…"* y luego un texto de un objeto literal. Se detecta buscando si existe **alguna** llamada a un modelo: si el único `fetch(` del repo sirve la página, no hay IA.
+- **Una columna sembrada que parece un cálculo.** `score`, `prioridad`, `confianza` a veces son datos de la semilla y el código solo ordena por ellos. Un tour que dice *"el sistema clasifica solo"* sobre un `ORDER BY` se cae con una pregunta.
+- **Una vista previa presentada como envío.** *"Ver correo: el mensaje tal cual le llegó al cliente"*, cuando la función lo **dibuja** en ese momento. Compruébalo con lo que no puede fingirse: ¿hay emisor, edge function, cron? Si no hay ninguno, no salió nada.
+
+**Y lee lo que queda alrededor del resaltado.** El caso más caro fue una narración que afirmaba *"lo escribe la IA"* mientras el panel de abajo —dentro del mismo recuadro iluminado— decía *"Demo: en producción la IA generará…"*. El cliente lee el descargo mientras Héctor afirma lo contrario. Un paso puede ser falso **por lo que tiene al lado**, no solo por lo que dice.
+
+Casi siempre lo verdadero vende igual de bien: *"el correo ya viene escrito con la voz del despacho, nadie se sienta a redactarlo el día del cumpleaños"* es tan fuerte como la mentira, y aguanta la pregunta que sigue.
+
 ## Qué se construye, en concreto
 
 Tres piezas. La estructura vive completa en `references/implementacion.md`, con el código listo para copiar.
@@ -82,7 +94,28 @@ Los pasos que cambian de ruta necesitan esperar a que la pantalla cargue. El pat
 
 **Un tour no está listo hasta que se corrió completo en la plataforma viva.** Es la diferencia entre esto y un archivo de texto bonito.
 
-Con Playwright, recorre cada paso y verifica que el elemento existe y es visible. Si un selector no encuentra nada, el tour está roto aunque compile. Hay un script listo en `references/verificar-tour.mjs` que recorre un tour entero y reporta los pasos que no resaltan.
+Hay un script listo en `references/verificar-tour.mjs`. Con Playwright recorre cada paso, navega a su ruta y verifica que el elemento **existe y es visible** — existir no basta: un elemento con `display:none` o dentro de una pestaña cerrada existe y no se puede resaltar. Sale con código distinto de cero si algo falla, así que sirve tal cual en CI.
+
+```bash
+# desde el proyecto de la plataforma (de ahí toma playwright)
+npm i --no-save playwright && npx playwright install chromium
+
+node ~/.claude/skills/productour/references/verificar-tour.mjs \
+  https://cucina-capitale.pages.dev ./src/tours --pass cucina2026
+
+# plataformas con login de usuario:
+node ~/.claude/skills/productour/references/verificar-tour.mjs \
+  https://lpet.lovable.app ./src/tours --correo demo@lpet.mx --clave ***** [--ruta-login /auth]
+
+# ver qué entendió el parser sin abrir navegador (rutas, selectores, cuántos pasos):
+node ~/.claude/skills/productour/references/verificar-tour.mjs <url> ./src/tours --listar
+```
+
+Tres cosas que hay que saber para creerle al reporte:
+
+- **`--listar` primero.** Si ahí faltan pasos, el reporte de la corrida los daría por buenos sin haberlos mirado nunca. El total tiene que cuadrar con los pasos del archivo.
+- **Resuelve constantes de ruta.** Un paso con `ruta: FOLIO_DEMO` se verifica contra la ruta real, no contra la pantalla del paso anterior.
+- **Lo que no puede verificar lo dice.** Si una ruta no se resuelve, el paso sale como `RUTA NO RESUELTA` y se cuenta aparte de las fallas — nunca se hereda la pantalla anterior, porque eso inventa rotos que en vivo funcionan.
 
 Y después, **recórrelo tú como si estuvieras presentando**: lee la narración de corrido y pregúntate si cuenta una historia o si es una lista de pantallas. Ese juicio no lo hace un script.
 
