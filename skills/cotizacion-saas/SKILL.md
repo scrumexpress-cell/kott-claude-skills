@@ -107,7 +107,33 @@ Toda cotización debe incluir estas secciones en este orden. Adaptar el contenid
 - Diferenciador principal (ej: propiedad del código, sin lock-in)
 
 ### 5. Alcance Funcional
-- Organizar por módulos/súper-módulos
+
+#### El orden de los módulos es el del negocio, no el del menú ni el del desarrollo
+
+**Ésta es la regla que más cambia cómo se lee el documento, y la que más fácil se rompe.** Los módulos van en **el orden en que la empresa opera y en que se va a usar el sistema**: se empieza por donde entra el cliente o el dinero, y de ahí se sigue el rastro de una venta hasta que se cobra.
+
+En una fábrica de cocinas eso significa abrir por **marketing y prospección** —de ahí sale el cliente—, seguir con **el diseño de la cocina y su cotización**, después **producción**, luego **obra e instalación**, y cerrar con **cobranza y dirección**. En una distribuidora sería: el vendedor levanta el pedido → facturación → embarque → cobranza. En una consultoría: captación → propuesta → ejecución → facturación.
+
+Por qué importa, y no es estética:
+
+- **Se lee como su empresa, no como un catálogo de software.** El cliente va reconociendo su propio día en cada página; cuando el orden es arbitrario, tiene que reconstruir mentalmente dónde encaja cada módulo y deja de seguir el documento.
+- **Cada módulo justifica al siguiente.** «…y cuando facturación lo libera, se va a producción» convierte una lista en una historia. Un módulo suelto invita a la pregunta cara: *«¿y esto para qué lo necesito?»*
+- **Deja ver los huecos.** Si el recorrido salta de la cotización a la instalación sin pasar por producción, se nota de inmediato — en un orden alfabético o por tamaño, no.
+
+Cómo se saca el orden, en este orden de preferencia:
+
+1. **De sus juntas** (`biblio_reuniones_notas`): quién hace qué y en qué momento. Ahí se ve dónde nace el dinero, que casi nunca es el primer módulo del menú.
+2. **Del rastro de una venta**: sigue una sola operación desde que aparece el prospecto hasta que se cobra, y numera lo que va tocando.
+3. **Si no hay juntas**, dilo y usa el flujo natural de ese giro — pero jamás inventes un proceso que el cliente no describió: en la presentación se nota en tres segundos.
+
+Lo que **no** define el orden: el orden del menú de la plataforma, el orden en que se desarrollaron los módulos, su tamaño, ni el orden alfabético.
+
+Los módulos que no son una etapa de la operación —catálogos maestros, configuración, usuarios y permisos, tableros de dirección— van **al final**, agrupados, después del recorrido. Son el soporte del proceso, no un paso de él; la única excepción es el tablero de dirección, que cierra bien porque es donde desemboca todo.
+
+Numera las etapas y nómbralas en la voz del negocio: **«1. Se consigue al cliente»**, no «Módulo CRM». El nombre técnico ya va en el encabezado del módulo.
+
+#### Lo demás del alcance
+- Organizar por módulos/súper-módulos, respetando el orden de operación de arriba
 - Para cada módulo: nombre como header, sub-módulos con bullets de funcionalidades clave
 - **Incluir screenshot real del módulo debajo de la descripción** — es el diferenciador visual más poderoso del documento. Si no hay capturas disponibles, solicitarlas al usuario antes de generar el .docx o dejar placeholder explícito.
 - Ser específico en funcionalidades (no genérico): verbos de acción + entidad + beneficio
@@ -234,6 +260,8 @@ Al generar o revisar una cotización, verificar que estén cubiertos estos punto
 13. **IP preexistente** — Distinguir código personalizado (del cliente) de frameworks/herramientas genéricas del proveedor.
 14. **Aclaración cotización ≠ contrato** — Siempre cerrar con la nota de que el documento no constituye contrato y que se firmará uno aparte.
 15. **Coherencia One-Pager ↔ Alcance** — Verificar que cada dolor del one-pager tenga una hipótesis de solución reflejada en el alcance funcional, y que cada KPI prometido sea defendible con la funcionalidad ofrecida. Si hay un dolor sin solución en el alcance, o un KPI sin mecanismo claro para alcanzarlo, marcarlo.
+
+15b. **El alcance va en orden de operación** — Leer los encabezados de los módulos de corrido, en el orden en que aparecen, y preguntarse si eso describe cómo trabaja la empresa. El primero debe ser donde entra el cliente o el dinero; el último, donde se cobra o se mide. Si el recorrido salta una etapa, o si el orden resultó ser el del menú, el del desarrollo o el alfabético, reordenar. Los catálogos, la configuración y los permisos van al final. Ver la regla completa en la sección 5.
 16. **Cada promesa existe y no cuesta por uso** — Recorrer bullets, tablas de "qué incluye" y condiciones, y confirmar una por una que (a) están construidas —archivo y línea, o tabla y consulta— y (b) su costo no crece con el uso del cliente. Ver la regla dura más abajo.
 17. **Cotización registrada en `quotes`** — El PDF no basta: verificar que quedó la fila con `cliente_id` ligado. Ver "PASO FINAL" más abajo. Sin esto, los agentes seguirán reportando al cliente como "falta cotizar".
 18. **PDF archivado fuera de la máquina** — `pdf_path` apunta al escritorio de Héctor; eso no es archivo, es una copia local. Verificar que `pdf_storage_path` quedó lleno vía `archivar-cotizacion`. Ver "PASO FINAL" más abajo.
