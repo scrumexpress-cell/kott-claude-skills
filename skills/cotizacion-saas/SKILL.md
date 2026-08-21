@@ -111,7 +111,7 @@ Toda cotización debe incluir estas secciones en este orden. Adaptar el contenid
 - Para cada módulo: nombre como header, sub-módulos con bullets de funcionalidades clave
 - **Incluir screenshot real del módulo debajo de la descripción** — es el diferenciador visual más poderoso del documento. Si no hay capturas disponibles, solicitarlas al usuario antes de generar el .docx o dejar placeholder explícito.
 - Ser específico en funcionalidades (no genérico): verbos de acción + entidad + beneficio
-- Destacar funcionalidades de IA con texto como "clasificación automática por IA", "detector de anomalías", "predicción de cobranza IA", "asistente IA con resumen en lenguaje natural"
+- **La inteligencia del sistema se menciona DENTRO de los módulos donde de verdad opera**, repartida a lo largo del alcance y no concentrada en una sección de "IA". Se nombra por lo que hace, nunca por cómo está hecha: *"clasificación automática por severidad"*, *"detector de anomalías en el gasto"*, *"predicción de la fecha crítica de reabastecimiento"*, *"el sistema escala solo el hallazgo hasta que alguien responde"*, *"resumen en lenguaje natural de la semana"*. Cada mención tiene que poder contestar **"¿qué hace el sistema solo, que antes hacía una persona?"** — si no la contesta, se va. Ver la regla dura más abajo, que explica por qué se describe el resultado y jamás el motor.
 - Si algún módulo tiene integración futura pendiente (ej. nómina externa), aclarar que "la integración completa se cotizará por separado"
 
 ### 6. Infraestructura y Tecnología — ⚠️ OMITIR POR DEFAULT (el usuario pidió eliminarla)
@@ -444,11 +444,31 @@ git push
 
 **Origen (20-ago-2026):** la cotización de Mr. Cocoa Food Service prometía *"el costo de las llamadas a los modelos de IA está incluido en la mensualidad"* en la tabla de qué incluye la suscripción, y *"IA incluida"* en el plan mensual. La plataforma **no llama a ningún modelo de IA**: no tiene edge functions y la importación de órdenes en PDF es análisis de texto con expresiones regulares. Esa línea comprometía un costo variable y sin tope, contra una mensualidad fija de $7,900, por una funcionalidad que además no existía. La frase entró sola, por inercia de otras cotizaciones donde sí aplicaba.
 
+### La inteligencia se nombra por lo que HACE, nunca por cómo está hecha
+
+La regla de arriba no significa que el documento no hable de inteligencia artificial. Significa que **no se compromete el motor, se compromete el resultado.**
+
+El cliente no compra un modelo de lenguaje: compra que su sistema clasifique solo, detecte lo que se sale de la norma, avise antes de que truene y proponga el siguiente paso. Si eso se entrega con un LLM, con reglas de negocio, con un flujo de n8n o con una consulta bien pensada, **es asunto del proveedor** — el cliente recibió exactamente lo que compró. La implementación no es parte del trato y no se discute en la propuesta.
+
+De ahí salen las tres reglas de redacción:
+
+1. **Nunca nombres la tecnología.** Ni "GPT", ni "Claude", ni "OpenAI", ni "modelo de lenguaje", ni "tokens", ni "n8n", ni "reglas". Nombrar el motor hace dos daños a la vez: ata al proveedor a una implementación que quizá cambie, e invita al cliente a comparar proveedores por su stack en vez de por su resultado.
+
+2. **Descríbela como capacidad, en la voz del cliente.** No "módulo de IA": *"clasificación automática de hallazgos por severidad"*, *"detector de anomalías en el gasto"*, *"predicción de la fecha crítica de reabastecimiento"*, *"el sistema te avisa antes de que se venza"*, *"resumen en lenguaje natural de lo que pasó esta semana"*. Cada una es verificable en pantalla y ninguna promete un costo por evento.
+
+3. **Que se sienta a lo largo del documento, no en una sección aparte.** Una fila llamada "Inteligencia artificial" en la tabla de qué incluye es justo la que se vuelve un cheque en blanco. En cambio, mencionar la capacidad inteligente dentro de cada módulo donde de verdad opera —el que clasifica, el que alerta, el que prioriza— la hace parte del producto en vez de un extra facturable.
+
+**El límite que no se cruza:** no se le pone "inteligente" ni "automático" a un módulo que no automatiza nada. Ese es el error original de esta sección, con otro disfraz. Si el módulo solo pinta una tabla que alguien llenó a mano, no se adorna: o se construye la automatización, o el renglón no la menciona. La diferencia entre vender bien y prometer de más es exactamente ésa — y el que firma la va a descubrir el día que abra la pantalla.
+
+**Regla práctica antes de mandar:** por cada mención de inteligencia en el documento, pregúntate *"¿qué hace el sistema solo, que antes hacía una persona?"*. Si tienes la respuesta, la mención se queda. Si no la tienes, se va.
+
 ## Anti-patrones — NUNCA hacer
 
 - **Exponer defectos del propio sistema en el documento de venta.** Los pain points del One-Pager describen la realidad del cliente ANTES de la plataforma, no fixes hechos sobre tu propio código. Ver regla crítica en sección 3 del documento.
 - **Mezclar el changelog del producto con la cotización.** El cliente que firma no quiere leer "v1.2 arregló X, v1.3 mejoró Y". Quiere leer "esto resuelve tu problema operativo Z". El changelog va en una página interna del producto (ej. `/changelog`), no en el PDF de venta.
 - **Listar "limpieza de warnings", "fix de bug", "refactor" como entregables.** Si vas a presentar mejoras hechas, frasealas en términos de outcome para el cliente, no de actividad técnica del proveedor.
+- **Nombrar el motor en vez del resultado.** Escribir "integración con GPT-4", "usa Claude" o "flujos de n8n" ata al proveedor a una implementación y pone al cliente a comparar stacks en vez de resultados. Se describe lo que el sistema hace solo; cómo lo hace es asunto del proveedor.
+- **Adornar con "inteligente" o "automático" un módulo que no automatiza nada.** Es la misma falta que "IA incluida", con otro disfraz. Si no puedes contestar "¿qué hace el sistema solo, que antes hacía una persona?", el renglón va sin adjetivo.
 - **Prometer KPIs sin mecanismo claro para alcanzarlos.** Si dices "−40% de llamadas al ejecutivo", debe haber una funcionalidad concreta en el alcance que justifique esa reducción. Si no, baja el KPI o quítalo.
 - **Copiar renglones de una cotización anterior sin verificarlos contra ESTA plataforma.** Así fue como "IA incluida" acabó en una propuesta de un sistema que no llama a ningún modelo. Las filas de "qué incluye la suscripción" son las que más se arrastran de un documento a otro; revísalas una por una.
 - **Meter en una mensualidad fija cualquier cosa que se pague por uso.** Ver la regla dura arriba. Y si hay que dejarlo fuera, se deja fuera en silencio: el documento describe lo que la plataforma hace, nunca por qué algo no está incluido.
