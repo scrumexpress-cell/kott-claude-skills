@@ -14,11 +14,14 @@ Antes de generar o revisar cualquier cotización, verifica que estás usando la 
 1. Descarga el SKILL.md remoto (usa el que funcione):
    - `gh api repos/scrumexpress-cell/kott-claude-skills/contents/skills/cotizacion-saas/SKILL.md --jq .content | base64 --decode > /tmp/skill_remoto.md`
    - o crudo: `curl -sL https://raw.githubusercontent.com/scrumexpress-cell/kott-claude-skills/main/skills/cotizacion-saas/SKILL.md -o /tmp/skill_remoto.md`
-2. Compáralo con este archivo local (`~/.claude/skills/cotizacion-saas/SKILL.md`) — p. ej. con `diff`.
-3. Si difieren, **sobrescribe el local con el remoto**, avisa al usuario en una línea ("actualicé el skill a la última versión del repo") y **continúa aplicando la versión actualizada** (vuelve a leer el SKILL.md ya actualizado).
+2. Compáralo con este archivo local (`~/.claude/skills/cotizacion-saas/SKILL.md`). **Normaliza los saltos de línea antes de comparar** (`\r\n` → `\n`): si no, un archivo idéntico se reporta como completamente distinto y la comparación no sirve de nada.
+3. **Averigua en qué dirección va la diferencia antes de tocar nada.** Mira qué contenido tiene uno que al otro le falta, no solo si difieren:
+   - **El remoto trae secciones que el local no tiene** → el local está atrasado: sobrescríbelo, avisa en una línea ("actualicé el skill a la última versión del repo") y sigue con la versión actualizada.
+   - **El local trae secciones que el remoto no tiene** → el REPO está atrasado. **NO sobrescribas: perderías reglas.** Avísale al usuario qué secciones se salvaron y ofrécele subir el local al repo.
+   - **Cada uno tiene cosas del otro** → no elijas tú. Enséñale al usuario qué hay de cada lado y pregúntale con cuál seguir.
 4. Si el repo no es accesible (sin red / sin `gh` / sin `curl`), continúa con la versión local y avísale al usuario que no pudo verificarse.
 
-No omitas este paso: garantiza que las reglas (formato de salida en PDF, datos de pago del proveedor, estructura del documento) sean siempre las más recientes que el usuario mantiene en el repo.
+**Por qué el paso 3 es así (20-ago-2026):** el paso original decía "si difieren, sobrescribe el local con el remoto". Ese día el local tenía **34 líneas que el repo no tenía** — toda la sección *"PASO FINAL: registrar la cotización en Supabase"*, agregada el 9-ago justo porque `quotes` estaba vacía y el agente Steve repetía "falta cotizar" a clientes ya cotizados. Obedecer el paso al pie de la letra habría borrado esa regla y devuelto el problema. El repo es la fuente de verdad **cuando está al día**, no por decreto.
 
 ## Propósito
 
@@ -231,6 +234,8 @@ Al generar o revisar una cotización, verificar que estén cubiertos estos punto
 13. **IP preexistente** — Distinguir código personalizado (del cliente) de frameworks/herramientas genéricas del proveedor.
 14. **Aclaración cotización ≠ contrato** — Siempre cerrar con la nota de que el documento no constituye contrato y que se firmará uno aparte.
 15. **Coherencia One-Pager ↔ Alcance** — Verificar que cada dolor del one-pager tenga una hipótesis de solución reflejada en el alcance funcional, y que cada KPI prometido sea defendible con la funcionalidad ofrecida. Si hay un dolor sin solución en el alcance, o un KPI sin mecanismo claro para alcanzarlo, marcarlo.
+16. **Cada promesa existe y no cuesta por uso** — Recorrer bullets, tablas de "qué incluye" y condiciones, y confirmar una por una que (a) están construidas —archivo y línea, o tabla y consulta— y (b) su costo no crece con el uso del cliente. Ver la regla dura más abajo.
+17. **Cotización registrada en `quotes`** — El PDF no basta: verificar que quedó la fila con `cliente_id` ligado. Ver "PASO FINAL" más abajo. Sin esto, los agentes seguirán reportando al cliente como "falta cotizar".
 
 ## Formato de salida
 
@@ -249,12 +254,67 @@ Al generar o revisar una cotización, verificar que estén cubiertos estos punto
 - Screenshots de módulos insertados a ancho completo debajo de cada descripción funcional
 - Cifras clave del resumen ejecutivo en formato de "tarjetas" horizontales (ej: "5 súper-módulos | 15+ sub-módulos | 3 oficinas | IA integrada")
 
+## PASO FINAL — Registrar la cotización en Supabase (OBLIGATORIO)
+
+**No des la cotización por entregada hasta haber insertado su fila en `quotes`.** Generar el PDF no es el último paso: si la cotización no queda registrada, para el resto del sistema **nunca existió**.
+
+**Por qué existe esta regla (9-ago-2026):** la tabla `quotes` tenía **una sola fila** en toda la base, porque las cotizaciones se entregaban como PDF y nadie las registraba. El agente Steve deduce "clientes por cotizar" de *cliente en etapa cotizable sin cotización ligada*, así que marcó a CCR - Silver Breeze MX como "listo para cotizar" el **6, 7, 8 y 9 de agosto** — cuatro días seguidos — cuando la cotización ya se había enviado. El fundador tuvo que corregirlo a mano. Un pendiente falso repetido entrena a ignorar el feed completo, incluidos los pendientes reales.
+
+Inmediatamente después de generar el PDF, con el MCP de Supabase (`execute_sql`, proyecto `clnirhdxsohtrcjsuntw`):
+
+```sql
+insert into quotes (
+  quote_number, client_name, client_company, client_email,
+  subtotal, total, currency, setup_fee, monthly_fee,
+  valid_until, status, notes, pdf_name, pdf_path, cliente_id, deal_id
+) values (
+  'COT-2026-XXXX',            -- consecutivo; revisa el último con: select quote_number from quotes order by created_at desc limit 1
+  '<persona que la recibe>', '<empresa>', '<correo o null>',
+  <subtotal>, <total>, 'MXN', <inversion inicial o null>, <mensualidad o null>,
+  (current_date + 30),        -- vigencia estándar de 30 días naturales
+  'sent',                     -- 'draft' si aún no se manda; 'sent' al entregarla; luego 'accepted' / 'rejected'
+  '<versión, modelo comercial y qué incluye, en una línea>',
+  '<Cotizacion_Cliente_v1.pdf>', '<ruta local o del repo donde quedó el PDF>',
+  '<cliente_id de public.clientes, o null>', '<deal_id, o null>'
+) returning id, quote_number;
+```
+
+Reglas:
+
+- **`cliente_id` es lo que apaga el falso positivo.** Búscalo con `select id, company from clientes where deleted_at is null and company ilike '%<cliente>%'`. Sin él, la fila existe pero Steve sigue sin ver la liga y vuelve a marcar al cliente.
+- Si el cliente **no está** en `clientes`, dilo en el resumen final para que el fundador lo dé de alta — **no lo crees tú** (misma regla que el Bibliotecario).
+- **Versión nueva de una cotización existente** (v2, v3…): inserta una fila nueva con su propio `quote_number`, no sobrescribas la anterior. El histórico de versiones es evidencia comercial.
+- **Cotización en USD**: pon `currency='USD'` y deja los montos en USD, sin convertir.
+- Al terminar, dile al usuario en una línea qué quedó registrado: folio, cliente y total.
+
+## Solo se promete lo que está construido y no cuesta por uso (REGLA DURA)
+
+**La cotización lista exactamente lo que la plataforma hace hoy. Nada más.** Ni funcionalidad que "sería fácil de agregar", ni servicios cuyo costo crezca con el uso del cliente. Este documento se vuelve contrato: cada renglón es algo que hay que sostener con la mensualidad ya firmada.
+
+**Dos verificaciones antes de generar el PDF, siempre:**
+
+1. **¿Existe?** Cada promesa —bullets del alcance, filas de "qué incluye", condiciones— tiene que poder señalarse con archivo y línea del repo, o con la tabla y la consulta. Si el respaldo es "me acuerdo que lo pensamos", se quita. El que escribe la cotización suele ser el que construyó la plataforma, y ése es el peor auditor posible: da por hecho lo que recuerda haber diseñado.
+
+2. **¿Su costo crece con el uso?** Si la respuesta es sí, no va en una mensualidad fija. Casos que hay que revisar uno por uno:
+   - Llamadas a modelos de IA (tokens)
+   - Correo transaccional por volumen
+   - Almacenamiento de archivos e imágenes
+   - Transcripción, OCR, geocodificación, SMS, WhatsApp
+   - Cualquier API de terceros que cobre por evento
+   - Tráfico y filas de base de datos, cuando el plan contratado tiene tope
+
+**Cómo se redacta cuando el cliente sí pidió algo de costo variable:** va en "qué se cotiza aparte", descrito por lo que hace, con su propio precio o con la nota de que se cotiza al definir el volumen. **Nunca se explica en el documento el motivo del recorte.** El cliente lee lo que la plataforma hace; no lee la contabilidad interna del proveedor ni frases como "esto consume tokens" o "esto nos cuesta por llamada". Es una regla de qué prometer, no un tema de conversación con el cliente.
+
+**Origen (20-ago-2026):** la cotización de Mr. Cocoa Food Service prometía *"el costo de las llamadas a los modelos de IA está incluido en la mensualidad"* en la tabla de qué incluye la suscripción, y *"IA incluida"* en el plan mensual. La plataforma **no llama a ningún modelo de IA**: no tiene edge functions y la importación de órdenes en PDF es análisis de texto con expresiones regulares. Esa línea comprometía un costo variable y sin tope, contra una mensualidad fija de $7,900, por una funcionalidad que además no existía. La frase entró sola, por inercia de otras cotizaciones donde sí aplicaba.
+
 ## Anti-patrones — NUNCA hacer
 
 - **Exponer defectos del propio sistema en el documento de venta.** Los pain points del One-Pager describen la realidad del cliente ANTES de la plataforma, no fixes hechos sobre tu propio código. Ver regla crítica en sección 3 del documento.
 - **Mezclar el changelog del producto con la cotización.** El cliente que firma no quiere leer "v1.2 arregló X, v1.3 mejoró Y". Quiere leer "esto resuelve tu problema operativo Z". El changelog va en una página interna del producto (ej. `/changelog`), no en el PDF de venta.
 - **Listar "limpieza de warnings", "fix de bug", "refactor" como entregables.** Si vas a presentar mejoras hechas, frasealas en términos de outcome para el cliente, no de actividad técnica del proveedor.
 - **Prometer KPIs sin mecanismo claro para alcanzarlos.** Si dices "−40% de llamadas al ejecutivo", debe haber una funcionalidad concreta en el alcance que justifique esa reducción. Si no, baja el KPI o quítalo.
+- **Copiar renglones de una cotización anterior sin verificarlos contra ESTA plataforma.** Así fue como "IA incluida" acabó en una propuesta de un sistema que no llama a ningún modelo. Las filas de "qué incluye la suscripción" son las que más se arrastran de un documento a otro; revísalas una por una.
+- **Meter en una mensualidad fija cualquier cosa que se pague por uso.** Ver la regla dura arriba. Y si hay que dejarlo fuera, se deja fuera en silencio: el documento describe lo que la plataforma hace, nunca por qué algo no está incluido.
 
 ## Cotizaciones en USD con cliente mexicano
 
