@@ -119,6 +119,35 @@ El problema real que lo provocó es legítimo: si la ruta está protegida por ro
 
 Si la plataforma no tiene forma de cambiar de rol en el cliente, entonces el tour se recorre en modo lectura y se dice; lo que nunca se hace es esconder la etapa.
 
+### Lo prestado se devuelve en `onDestroyStarted`, nunca en `onDestroyed`
+
+**Ésta es una trampa de driver.js que no se ve leyendo su documentación, y que en una plataforma con permisos deja de ser cosmética.**
+
+`driver.js` **sólo dispara `onDestroyed` si su transición de escenario alcanzó a terminar**: escribe `__activeStep` y `__activeElement` en la rama terminal de su bucle de `requestAnimationFrame`, y `destroy()` exige las dos para invocar el callback. Con la animación por omisión —400 ms— eso significa que:
+
+- un **Esc en el primer instante** del recorrido no restaura nada, y
+- con la **pestaña en segundo plano** `rAF` se congela, así que tampoco.
+
+Si ahí vive la restauración del puesto, el usuario se queda convertido en otro. Si ahí vive un permiso prestado —pantallas abiertas en lectura para el recorrido—, **esas pantallas quedan abiertas el resto de la sesión**.
+
+Por eso: la devolución va en **`onDestroyStarted`, que sí corre siempre**, se engancha también `onDestroyed`, y la función se protege sola contra la doble llamada:
+
+```ts
+let yaCerro = false
+const cerrarTodo = () => {
+  if (yaCerro) return
+  yaCerro = true
+  // …devolver puesto, cerrar permisos, marcar visto
+}
+
+onDestroyStarted: () => { cerrarTodo(); d.destroy() },
+onDestroyed:      () => { cerrarTodo() },
+```
+
+Y si el tour presta un permiso de verdad, **compruébalo**: abre el recorrido, oprime Esc de inmediato, y verifica que la pantalla prestada volvió a estar cerrada. Un comentario que afirme *"corre también con Esc y con la ✕"* no es prueba — en dos plataformas ese comentario estaba escrito y era falso.
+
+**Y no confíes en que la pantalla prestada esté sólo de lectura.** Antes de prestarla, revisa que sus botones de acción de verdad estén gateados por rol: en un caso, el banner prometía *"los botones de acción siguen apagados"* mientras dos de las cuatro pantallas prestadas no tenían un solo chequeo de rol, y desde una de ellas se podía generar el corte del bono.
+
 - Un **interruptor Demo / Aprender** que cambia la narración.
 - Marca de cuáles ya vio el usuario (en `localStorage`, sin tabla nueva).
 
