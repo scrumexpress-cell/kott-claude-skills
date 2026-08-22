@@ -103,6 +103,28 @@ Toda cotización debe incluir estas secciones en este orden. Adaptar el contenid
 ### 4. Resumen Ejecutivo
 - Descripción de la solución en 1-2 párrafos
 - Cifras clave en formato visual (súper-módulos, sub-módulos, usuarios, etc.)
+
+#### Las cifras cuentan lo que ENTREGAMOS, nunca el volumen de los datos del cliente
+
+**Éste es un error caro y se cuela con facilidad, porque las cifras grandes se ven bien.** Las tarjetas del resumen ejecutivo son lo primero que lee el cliente y son, implícitamente, la respuesta a *"¿qué estoy comprando?"*. Si ahí van `219 proyectos`, `8,748 movimientos`, `2,642 insumos`, `338 unidades` y `73 prototipos`, la respuesta que está dando el documento es **el volumen de la información que ellos mismos nos entregaron**. No compraron eso: eso ya era suyo. Es como si un arquitecto cobrara presumiendo cuántos muebles ya tenías.
+
+Peor todavía: si el número viene de datos de prueba, el cliente que reconoce su propio archivo se pregunta por qué se lo están vendiendo — y con razón.
+
+**Lo que sí va en las tarjetas**, porque es lo que se construye y lo que se cobra:
+
+- **módulos** y **pantallas** que quedan operando
+- **funcionalidades** o procesos cubiertos
+- **automatizaciones**: cuántas cosas pasan solas que antes hacía una persona
+- **puestos** con su propia vista y sus permisos
+- **reportes** e **indicadores** que se entregan
+- **integraciones** conectadas
+- **pasos del recorrido guiado**, si se construyó
+
+**Ni una cifra de infraestructura.** `142 tablas de datos`, `38 endpoints`, `12 edge functions` no son valor para quien firma: son cómo está hecho por dentro, y ya hay una regla en este skill que dice que se describe el resultado y jamás el motor. Al cliente no le vendes tablas.
+
+**Qué hacer entonces con los datos reales, que sí son un diferenciador.** El hecho de que la plataforma esté cargada con su información —y no con datos inventados— es de lo más fuerte que tiene la propuesta, y **no se pierde**: se dice en prosa, en la sección que demuestra que no es una maqueta (*"el módulo administrativo está cargado con sus dos archivos reales"*). Ahí el volumen es **evidencia de que ya está funcionando**, y ahí sí se puede citar. Lo que no se hace es convertirlo en la cuenta de lo que se entrega.
+
+Regla para decidir en un segundo: **si la cifra existiría igual sin nosotros, no va en las tarjetas.**
 - Resumen del modelo comercial en lenguaje ejecutivo (no técnico)
 - Diferenciador principal (ej: propiedad del código, sin lock-in)
 
@@ -261,6 +283,8 @@ Al generar o revisar una cotización, verificar que estén cubiertos estos punto
 14. **Aclaración cotización ≠ contrato** — Siempre cerrar con la nota de que el documento no constituye contrato y que se firmará uno aparte.
 15. **Coherencia One-Pager ↔ Alcance** — Verificar que cada dolor del one-pager tenga una hipótesis de solución reflejada en el alcance funcional, y que cada KPI prometido sea defendible con la funcionalidad ofrecida. Si hay un dolor sin solución en el alcance, o un KPI sin mecanismo claro para alcanzarlo, marcarlo.
 
+15c. **Las tarjetas cuentan lo nuestro** — Leer una por una las cifras del resumen ejecutivo y preguntarse de cada una: *¿esto existiría igual sin nosotros?* Si la respuesta es sí (proyectos, movimientos, insumos, unidades, clientes, cualquier volumen que venga de sus archivos) sale de las tarjetas y se cita, si acaso, como evidencia en la sección que demuestra que no es una maqueta. Las cifras de infraestructura —tablas, endpoints, funciones— salen sin reemplazo. Ver la regla en la sección 4.
+
 15b. **El alcance va en orden de operación** — Leer los encabezados de los módulos de corrido, en el orden en que aparecen, y preguntarse si eso describe cómo trabaja la empresa. El primero debe ser donde entra el cliente o el dinero; el último, donde se cobra o se mide. Si el recorrido salta una etapa, o si el orden resultó ser el del menú, el del desarrollo o el alfabético, reordenar. Los catálogos, la configuración y los permisos van al final. Ver la regla completa en la sección 5.
 16. **Cada promesa existe y no cuesta por uso** — Recorrer bullets, tablas de "qué incluye" y condiciones, y confirmar una por una que (a) están construidas —archivo y línea, o tabla y consulta— y (b) su costo no crece con el uso del cliente. Ver la regla dura más abajo.
 17. **Cotización registrada en `quotes`** — El PDF no basta: verificar que quedó la fila con `cliente_id` ligado. Ver "PASO FINAL" más abajo. Sin esto, los agentes seguirán reportando al cliente como "falta cotizar".
@@ -281,7 +305,7 @@ Al generar o revisar una cotización, verificar que estén cubiertos estos punto
 - Headers y footers: "Agilidad en Digital · Propuesta Confidencial" en izquierda, número de página en derecha
 - Portada con espaciado generoso, logo grande centrado, tabla label/valor
 - Screenshots de módulos insertados a ancho completo debajo de cada descripción funcional
-- Cifras clave del resumen ejecutivo en formato de "tarjetas" horizontales (ej: "5 súper-módulos | 15+ sub-módulos | 3 oficinas | IA integrada")
+- Cifras clave del resumen ejecutivo en formato de "tarjetas" horizontales. Cuentan lo que se entrega, no el volumen de los datos del cliente ni detalles de infraestructura — ver la regla en la sección 4 (ej: "20 módulos operando | 9 puestos con su vista | 14 automatizaciones | 6 reportes")
 
 ## PASO FINAL — Registrar la cotización en Supabase (OBLIGATORIO)
 
