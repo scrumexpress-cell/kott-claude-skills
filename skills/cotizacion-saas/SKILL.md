@@ -51,6 +51,9 @@ Toda cotización debe incluir estas secciones en este orden. Adaptar el contenid
 - Logos del cliente (y proveedor) centrados arriba de la tabla
 - Nota de confidencialidad al pie: "Documento confidencial. Prohibida su reproducción sin autorización."
 
+**NO pongas en la portada la liga del demo ni la contraseña de acceso.** Un PDF circula, se reenvía y se guarda; una clave impresa ahí sobrevive al día en que deja de servir, y entonces el documento miente en la primera página. Pasó: la portada anunciaba un passcode compartido que se eliminó al poner login real, y el cliente que lo hubiera intentado no habría entrado.
+El acceso se entrega **en el correo**, que va a una persona. Si el documento necesita decir algo, que diga que el acceso se entrega por cuenta personal — nunca la credencial.
+
 ### 2. Contenido / Índice
 - Lista numerada de todas las secciones
 - **El primer elemento del índice siempre es el One-Pager de Hallazgos** (sección 3 del documento, posterior a portada e índice, pero primer contenido sustantivo)
@@ -125,6 +128,30 @@ Peor todavía: si el número viene de datos de prueba, el cliente que reconoce s
 **Qué hacer entonces con los datos reales, que sí son un diferenciador.** El hecho de que la plataforma esté cargada con su información —y no con datos inventados— es de lo más fuerte que tiene la propuesta, y **no se pierde**: se dice en prosa, en la sección que demuestra que no es una maqueta (*"el módulo administrativo está cargado con sus dos archivos reales"*). Ahí el volumen es **evidencia de que ya está funcionando**, y ahí sí se puede citar. Lo que no se hace es convertirlo en la cuenta de lo que se entrega.
 
 Regla para decidir en un segundo: **si la cifra existiría igual sin nosotros, no va en las tarjetas.**
+
+#### La regla no es solo de las tarjetas: aplica a CADA renglón del documento
+
+Se arreglaron las tarjetas y el error reapareció **dentro de los bullets del alcance** — *"338 unidades en cuatro torres, con 73 prototipos y sus 4,056 ambientes"*, *"CRM que sustituye el Excel: 53 cuentas"*, y hasta en un pie de foto. Son el tamaño de la semilla, presentados como si fueran el producto.
+
+Se reescriben describiendo **lo que la plataforma hace, y que sirve para cualquier tamaño**:
+
+| ❌ Cuenta la semilla | ✅ Describe la capacidad |
+|---|---|
+| 338 unidades en cuatro torres, con 73 prototipos y sus 4,056 ambientes | Torres, departamentos y ambientes en un mapa coloreado por estatus: de un vistazo se sabe en qué va cada espacio |
+| CRM que sustituye el Excel: 53 cuentas, embudo arrastrable | CRM que sustituye el Excel: cada cuenta con su etapa y su monto, embudo arrastrable |
+| Flujo de efectivo con el histórico desde 2018 | Flujo de efectivo por mes, con todo el histórico que carguen |
+
+Fíjate en lo que gana la columna derecha: **dice que sirve para cualquier desarrollo, no solo para el que cargamos.** El número no hacía eso.
+
+#### 🔍 Y busca los números escritos CON LETRA
+
+Un barrido de dígitos no los encuentra, y por ahí se coló *"Trescientos treinta y ocho departamentos"* después de que las cifras "ya estaban limpias". Busca en español: *trescientos, doscientos, ciento, cincuenta, cuarenta, treinta, veinte, mil, dos mil, ocho mil*…
+
+**Pero no todo número con letra es malo.** *"Veinte módulos operando"* y *"nueve puestos con su propia vista"* cuentan lo que entregamos y se quedan. La prueba es la misma de siempre: ¿existiría sin nosotros?
+
+#### La excepción, que no se toca
+
+En la sección que demuestra que no es una maqueta —*"No es una demostración con datos de mentira"*— el volumen real **sí es evidencia y se queda**: *"cargado con sus dos archivos reales: 219 proyectos con su semáforo, 8,748 movimientos…"*. Ahí ese número trabaja a favor. Lo que nunca hace es fingir ser la cuenta de lo que están comprando.
 - Resumen del modelo comercial en lenguaje ejecutivo (no técnico)
 - Diferenciador principal (ej: propiedad del código, sin lock-in)
 
@@ -168,17 +195,69 @@ Numera las etapas y nómbralas en la voz del negocio: **«1. Se consigue al clie
 - La garantía de propiedad/portabilidad que le importa al cliente vive en la sección de Modelo Comercial y Propiedad del Código.
 
 ### 7. Modelo Comercial y Propiedad del Código
+
 - Filosofía del modelo (transparencia, sin dependencia)
 - Garantías de propiedad del código
 - Modelo de entrega (SaaS, licencia perpetua, híbrido)
-- Libertad de salida del cliente
 - Sincronización de código (GitHub)
 
+#### ⚠️ El documento no puede contradecirse a sí mismo
+
+**Éste es el error más caro que ha salido, porque destruye la credibilidad de todo lo demás.** Una sección presumía:
+
+> *"No hay renta de licencia ni dependencia de un proveedor. (…) Si algún día deciden seguir sin nosotros, se llevan todo y la plataforma sigue funcionando."*
+
+…y tres páginas después el mismo PDF cobraba una **suscripción mensual** y traía una **tabla de penalización** por salir antes de tiempo. El cliente que lee las dos cosas no concluye que hubo un descuido: concluye que le están viendo la cara, y a partir de ahí desconfía de cada cifra del documento.
+
+**Antes de cerrar cualquier cotización, lee el documento completo buscando afirmaciones que el resto desmienta.** Las tres que más se cuelan:
+
+| Afirmación | Qué la desmiente |
+|---|---|
+| "No hay renta" / "sin mensualidad" | La tabla de suscripción |
+| "Se llevan todo cuando quieran" | La penalización por terminación anticipada |
+| "No hay permanencia obligatoria" | Que salir antes del corte cueste dinero |
+
+**Cómo se arregla sin perder la venta:** la propiedad del código **sí es cierta y sí es un diferenciador**, pero se dice sin las dos mentiras alrededor. Vive bien en la cláusula de Condiciones generales y en "Qué se llevan si deciden salir". Lo que no se hace es una sección que lo presuma mezclándolo con "no hay renta".
+
+Y si el cliente pide quitar el bloque entero, quítalo entero — no lo negocies a medias dejando la mitad que se contradice.
+
 ### 8. Inversión / Resumen Financiero
-- Inversión inicial (si aplica) con desglose
-- Suscripción recurrente: plan mensual vs. anual con descuento
-- Resumen comparativo (Año 1 mensual vs. anual, Año 2+)
-- Nota sobre IVA y facturación
+
+**El bloque económico se lee en tres golpes y en este orden: qué es el pago inicial, cómo se paga todo, y cuánto cuesta seguir.** Nada más. La versión anterior tenía cuatro tablas —inversión, suscripción con dos planes, comparativo de cuatro escenarios— y el cliente tenía que reconstruir mentalmente cuánto sale de su bolsa y cuándo.
+
+#### La inversión inicial NO es "la plataforma completa"
+
+Nunca la llames así: es falso y además abarata todo lo demás. Ese pago **no compra el sistema**, monta el ambiente donde va a vivir. Nómbralo por lo que es —**"Puesta en producción"**— y márcalo **obligatorio** en el mismo renglón, para que no se lea como opcional.
+
+En el detalle va lo que de verdad cubre: infraestructura, base de datos, dominio, respaldos, control de accesos, activación del servidor de correos a nombre del cliente, y la carga inicial de su información.
+
+#### Una tabla de "Cómo se paga", con momentos
+
+Es la que contesta la pregunta que el cliente se está haciendo. Tres renglones:
+
+| Momento | Concepto |
+|---|---|
+| **Contra firma** | 50 % de la puesta en producción, más el primer mes de suscripción |
+| **Al término del primer mes** | 50 % restante de la puesta en producción |
+| **A partir del segundo mes** | Suscripción mensual |
+
+**El 50/50 es el esquema estándar**, salvo que Héctor diga otra cosa. Y el monto de "contra firma" **se calcula**: la mitad del inicio más la primera mensualidad, en una sola cifra, para que no tenga que sumarla él.
+
+#### Una sola suscripción, no dos planes
+
+Se presenta **únicamente la mensual**. El plan anual deja de ser un renglón de tabla y pasa a ser **una línea debajo**: *"Si prefieren cubrir el año completo por adelantado, se les regala un mes: pagan once en lugar de doce."*
+
+Dos planes lado a lado obligan a comparar y a decidir antes de tiempo; una línea de regalo invita sin distraer.
+
+#### 🚫 El comparativo se elimina
+
+Nada de tablas "Año 1 mensual / Año 1 anual / Año 2 en adelante". Repiten cifras que ya están arriba, y su columna de totales pone al cliente a mirar el número más grande del documento justo cuando quieres que mire lo que recibe. **Decisión permanente.**
+
+#### Cuida la coherencia con Condiciones generales
+
+Si cambias el esquema de pago, **la cláusula de Facturación tiene que cambiar con él**. Se coló una cotización que decía "50 % contra firma" en la tabla y "100 % contra firma" en la cláusula. Búscalo siempre antes de cerrar.
+
+- Nota sobre IVA (16 % si se requiere CFDI)
 - Hora adicional con tarifa preferencial vs. mercado
 
 ### 9. Penalización por Terminación Anticipada
@@ -187,9 +266,40 @@ Numera las etapas y nómbralas en la voz del negocio: **«1. Se consigue al clie
   - 100% del código fuente, base de datos y documentación
   - Respaldo completo de la base de datos en formato SQL
   - Documentación de despliegue para infraestructura propia
-- Punto de corte donde la salida es libre ("Mes 13 en adelante: $0, con 30 días de aviso previo")
+- Punto de corte donde la salida es libre ("Mes 19 en adelante: $0, con 30 días de aviso previo")
+
+**El periodo por omisión es de 18 meses**, en tres tramos: meses 1-6 al 60 %, 7-12 al 40 %, 13-18 al 20 %, y libre del 19 en adelante. (Estuvo en 12; Héctor lo subió a 18 el 21-ago-2026.)
+
+**El "Máximo" de cada tramo se CALCULA, no se copia**, y se recalcula entero si cambia la mensualidad: es el porcentaje por las mensualidades que faltan para cerrar el periodo, tomadas en el primer mes del tramo. Con periodo de 18 meses eso es 17, 11 y 5 mensualidades. Verifica tu fórmula reproduciendo los montos viejos antes de escribir los nuevos — si no cuadran, entendiste mal la regla y vas a publicar cifras inventadas.
+
+**Y cuida la frase que va encima de la tabla.** "No hay permanencia obligatoria" justo arriba de una penalización de seis cifras es la misma contradicción de la sección 7 en miniatura. Si Héctor la quiere, se queda —es su decisión— pero díselo. La versión que no se desmiente: *"no están atados a un plazo forzoso, pero salir antes del mes 18 tiene un costo decreciente"*.
 
 ### 10. Qué Incluye la Suscripción
+
+#### Va fusionada con el precio, en una sola sección
+
+No pongas una tabla chica de "Plan / Qué incluye / Costo" y debajo otra sección titulada "Qué incluye la suscripción": **las dos dicen lo mismo y la primera lo dice peor**, resumiendo en un renglón lo que la segunda desglosa en nueve. El lector lo lee dos veces, y de paso queda media página en blanco entre ambas.
+
+La sección abre con **el precio en grande**, luego la línea del año adelantado, y de ahí el desglose:
+
+> **QUÉ INCLUYE LA SUSCRIPCIÓN MENSUAL**
+> **$X al mes.**
+> *Si prefieren cubrir el año completo por adelantado, se les regala un mes: pagan once en lugar de doce.*
+> …y la tabla Servicio / Descripción.
+
+#### Las horas: 40 el primer mes, 10 los siguientes
+
+**Por omisión** (Héctor, 21-ago-2026): el primer mes van **40 horas de consultoría y desarrollo**, para sentarse con cada área y adaptar la plataforma a cómo trabajan de verdad. De ahí en adelante, **10 horas cada mes**.
+
+Las 40 del primer mes **se mencionan también en la tabla de "Cómo se paga"**, en el renglón de contra firma: son parte de lo que justifica ese pago inicial más alto.
+
+Cuidado al cambiar la cifra: aparece en **cuatro lugares** —el renglón de la tabla, el cronograma, la nota de cierre del cronograma y el bloque de pago— y si dejas uno suelto el documento se contradice.
+
+#### Dos renglones que van siempre
+
+- **Servidor de correos** — Las notificaciones salen a nombre del cliente **desde su propio dominio**, no desde un remitente prestado, e incluye el mantenimiento del envío y la vigilancia de que lleguen a la bandeja y no al spam. La activación va **también** en la puesta en producción: es trabajo real, y saltárselo deja el sistema mandando correo simulado. *(En Cucina, 1,965 de 1,971 notificaciones estaban en `simulado` porque nadie había verificado el dominio.)* Nunca uses el dominio transaccional de AED para el correo del cliente.
+- **Procesamiento con inteligencia artificial** — *"La suscripción incluye un paquete mensual de procesamiento para las funciones que lo usan. Si alguna vez se rebasara, se avisa antes de cobrar nada: nunca llega un cargo sorpresa por consumo."* **Sin cifra**, salvo que Héctor la dé. Ese cierre es lo que hace que la línea sin número funcione: no promete infinito, promete que no hay sorpresa — y así respeta la regla dura de no prometer nada cuyo costo crezca con el uso.
+
 - Tabla detallada "Servicio / Descripción" con filas: Infraestructura dedicada, Soporte técnico (horario + SLA de respuesta), Horas de mejora y adaptación, Actualizaciones de software, Inteligencia Artificial (API costs incluidos), Monitoreo y disponibilidad (SLA uptime), Capacitación continua
 - Horas de mejora: cantidad mensual, ejemplos concretos de qué cubre (configurar nueva oficina, modificar reporte, ajustar campos, crear filtros)
 - **Acumulación de horas**: las horas no utilizadas se acumulan **dentro del semestre en curso** y expiran al cierre del semestre (no es acumulación indefinida, pero tampoco "úsala o piérdela" mensual)
@@ -208,8 +318,8 @@ Numera las etapas y nómbralas en la voz del negocio: **«1. Se consigue al clie
 
 - **Propiedad Intelectual** — Código es propiedad del cliente desde su creación; proveedor cede derechos patrimoniales; repositorio GitHub siempre actualizado.
 - **Confidencialidad** — Bidireccional, durante y después del contrato. Datos del cliente son del cliente.
-- **Vigencia y Renovación** — Sin permanencia obligatoria; penalización decreciente en primeros 12 meses; cancelación libre desde mes 13 con 30 días de aviso; renovación automática por periodos de 12 meses.
-- **Facturación** — Desglose de: inversión inicial (100% al firmar), mensualidad (primeros 5 días del mes), plan anual (factura única al inicio de cada periodo), precios antes de IVA (16% si CFDI), método de pago.
+- **Vigencia y Renovación** — Penalización decreciente durante los primeros 18 meses; cancelación libre desde el mes 19 con 30 días de aviso; renovación automática por periodos de 12 meses. (Ver la advertencia sobre "sin permanencia obligatoria" en la sección 9.)
+- **Facturación** — Desglose de: puesta en producción (**50 % contra firma y 50 % al término del primer mes** — tiene que decir lo MISMO que la tabla "Cómo se paga"; se coló una cotización con 50/50 en la tabla y 100 % en esta cláusula), mensualidad (primeros 5 días del mes; la primera se cubre contra firma), año adelantado (factura única al inicio del periodo), precios antes de IVA (16% si CFDI), método de pago.
 - **Datos para Pago** — Presentar **dos opciones claramente separadas**:
   - *Opción A — Sin CFDI* (persona física): beneficiario, banco, CLABE, cuenta, sucursal
   - *Opción B — Con CFDI* (persona moral): beneficiario (razón social), banco, CLABE, contrato, requisitos CFDI (constancia de situación fiscal, uso de CFDI, correo)
@@ -282,6 +392,10 @@ Al generar o revisar una cotización, verificar que estén cubiertos estos punto
 13. **IP preexistente** — Distinguir código personalizado (del cliente) de frameworks/herramientas genéricas del proveedor.
 14. **Aclaración cotización ≠ contrato** — Siempre cerrar con la nota de que el documento no constituye contrato y que se firmará uno aparte.
 15. **Coherencia One-Pager ↔ Alcance** — Verificar que cada dolor del one-pager tenga una hipótesis de solución reflejada en el alcance funcional, y que cada KPI prometido sea defendible con la funcionalidad ofrecida. Si hay un dolor sin solución en el alcance, o un KPI sin mecanismo claro para alcanzarlo, marcarlo.
+
+15d. **El documento no se contradice** — Leer de corrido las afirmaciones fuertes y confrontarlas con las tablas: ¿alguna dice "no hay renta" habiendo suscripción, "se llevan todo" habiendo penalización, "sin permanencia" habiendo costo de salida? Ver sección 7.
+
+15e. **Una cifra cambiada, cambiada en todas partes** — Cuando se mueve un precio, las horas o el plazo, barrer TODAS sus apariciones y sus derivadas: la mensualidad alimenta la tabla de penalización completa; el inicio alimenta los dos pagos; las horas viven en cuatro lugares; el esquema de pago vive en la tabla y en la cláusula de Facturación. Extraer del PDF final el conjunto de montos y compararlo contra el esperado.
 
 15c. **Las tarjetas cuentan lo nuestro** — Leer una por una las cifras del resumen ejecutivo y preguntarse de cada una: *¿esto existiría igual sin nosotros?* Si la respuesta es sí (proyectos, movimientos, insumos, unidades, clientes, cualquier volumen que venga de sus archivos) sale de las tarjetas y se cita, si acaso, como evidencia en la sección que demuestra que no es una maqueta. Las cifras de infraestructura —tablas, endpoints, funciones— salen sin reemplazo. Ver la regla en la sección 4.
 
@@ -522,6 +636,15 @@ Pero el listón es bajo y a propósito: **si el sistema hace algo solo que antes
 **Regla práctica antes de mandar:** por cada mención de inteligencia, contesta *"¿qué hace el sistema solo, que antes hacía una persona?"*. Casi siempre hay respuesta. Y si al terminar el documento no hay ninguna mención, no des por hecho que no había: regresa al alcance y búscala, porque en una plataforma con automatizaciones seguro la hay y dejarla fuera es regalar el argumento.
 
 ## Anti-patrones — NUNCA hacer
+
+- **Que el documento se contradiga.** "No hay renta" con una suscripción; "se llevan todo" con una penalización; "sin permanencia" con un costo de salida. Ver sección 7.
+- **Llamar "plataforma completa" al pago inicial.** No lo es: monta el ambiente de producción. Ver sección 8.
+- **Tabla comparativa de escenarios.** Eliminada de forma permanente.
+- **Dos planes de suscripción lado a lado.** Solo el mensual; el año adelantado es una línea.
+- **Cifras que cuentan los datos de prueba** en tarjetas, bullets o pies de foto — incluidas las escritas con letra.
+- **Cifras de infraestructura** (tablas, endpoints, funciones) como valor. Al cliente no le vendes tablas.
+- **Ligas de acceso o contraseñas en el PDF.** Envejecen y el documento acaba mintiendo.
+- **Cambiar una cifra sin barrer sus repeticiones.** Las horas viven en cuatro lugares; el esquema de pago en dos; la mensualidad alimenta toda la tabla de penalización.
 
 - **Exponer defectos del propio sistema en el documento de venta.** Los pain points del One-Pager describen la realidad del cliente ANTES de la plataforma, no fixes hechos sobre tu propio código. Ver regla crítica en sección 3 del documento.
 - **Mezclar el changelog del producto con la cotización.** El cliente que firma no quiere leer "v1.2 arregló X, v1.3 mejoró Y". Quiere leer "esto resuelve tu problema operativo Z". El changelog va en una página interna del producto (ej. `/changelog`), no en el PDF de venta.
