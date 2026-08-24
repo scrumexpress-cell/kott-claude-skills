@@ -414,7 +414,25 @@ Al generar o revisar una cotización, verificar que estén cubiertos estos punto
   - Nombra el archivo `Cotizacion_<Cliente>_v<N>.pdf` y déjalo en el working dir del usuario.
   - Si la conversión a PDF falla, entrega el `.docx` e indícalo explícitamente, pero intenta el PDF primero.
 - Tipografía: Arial (o sans-serif limpio equivalente)
-- Paleta corporativa: naranja #E85D1F (acento/headers), gris oscuro #333 (texto), blanco para fondo
+
+#### Marca compartida: los dos logos, y el naranja es el de AED
+
+**Decisión de Héctor (24-ago-2026), y es regla dura, no nota de formato.** La cotización es un documento comercial de AED, pero se lee del lado del cliente. Por eso lleva las dos marcas:
+
+- **Los dos logos en la portada**, juntos y del mismo tamaño visual: el de AED y el del cliente. Si sólo aparece uno, está mal.
+- **El acento de los encabezados es el naranja de AED**, `#E85D1F`. No el color del cliente.
+- **El color del cliente vive como acento secundario**: filetes, viñetas, encabezados de tabla. Presente, pero sin gobernar el documento.
+- Gris oscuro `#333` para texto, blanco de fondo.
+
+**Por qué se escribió esto:** las cotizaciones habían derivado, cada una por su lado. Cucina y Mr. Cocoa usaban el naranja de AED; lPet, NIXGO y Promasa usaban el color del cliente como acento principal — y **ninguna de las cinco traía logo**. El resultado no era una postura ni la otra, era una mezcla inconsistente. Eso sí es un defecto, se elija lo que se elija.
+
+**De dónde salen los logos.** No hay un archivo maestro del logo de AED en el repo: el único disponible es `https://www.agilidadendigital.com/favicon.png` (el árbol, 77×71 px, PNG con transparencia). Alcanza para una portada a ~40 px de alto, pero si aparece uno de mayor resolución, úsalo. El del cliente se saca de su propio sitio.
+
+**Muestrea el color del logo, no lo supongas.** Al hacerlo salieron dos discrepancias vigentes:
+- El árbol de AED es **`#F26C4E`**, no `#E85D1F`. Son parecidos y conviven, pero no son el mismo. `#E85D1F` sigue siendo el corporativo de los encabezados; si algún día se unifican, se decide aquí.
+- lPet es **`#77933C`** (verde olivo) con gris `#595959`. Su cotización usaba `#0E7C5A`, que no es su verde.
+
+Si el logo no se puede obtener, **dilo y entrega la portada sin él** — nunca lo sustituyas por texto imitando la marca, que es el mismo error que se cometió con la firma de Outlook: un remedo se ve peor que la ausencia.
 - Tablas con bordes suaves, headers con fondo oscuro + texto blanco, filas alternadas
 - Headers y footers: "Agilidad en Digital · Propuesta Confidencial" en izquierda, número de página en derecha
 - Portada con espaciado generoso, logo grande centrado, tabla label/valor
