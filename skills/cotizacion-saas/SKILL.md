@@ -152,6 +152,8 @@ Un barrido de dígitos no los encuentra, y por ahí se coló *"Trescientos trein
 #### La excepción, que no se toca
 
 En la sección que demuestra que no es una maqueta —*"No es una demostración con datos de mentira"*— el volumen real **sí es evidencia y se queda**: *"cargado con sus dos archivos reales: 219 proyectos con su semáforo, 8,748 movimientos…"*. Ahí ese número trabaja a favor. Lo que nunca hace es fingir ser la cuenta de lo que están comprando.
+
+- **Antes de escribir "está cargada con SU información real", verifica QUÉ es real y qué es semilla.** La excepción de arriba solo vale si el dato de verdad es del cliente: en una demo es normal que el catálogo sea real y la historia de ventas sea sembrada, y presumir la semilla como "sus trece meses de historia" es una mentira que el cliente descubre al abrir su propio archivo. Pregúntale a la base (o a quien sembró la demo) qué tablas traen datos del cliente y cuáles traen datos sintéticos, y presume SOLO las primeras; las segundas se dicen como lo que son: "los movimientos que ven los tableros son de demostración y se sustituyen con su operación en la puesta en marcha" — que además vende el arranque en vez de esconderlo. *(31-ago-2026 · Mr. Cocoa v1 presumía "83 productos y trece meses de historia real" cuando la auditoría del repo encontró 56 productos reales y 12 meses de ventas sintéticas.)*
 - Resumen del modelo comercial en lenguaje ejecutivo (no técnico)
 - Diferenciador principal (ej: propiedad del código, sin lock-in)
 
