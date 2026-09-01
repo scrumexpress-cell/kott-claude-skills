@@ -231,7 +231,7 @@ Y si el cliente pide quitar el bloque entero, quítalo entero — no lo negocies
 
 Nunca la llames así: es falso y además abarata todo lo demás. Ese pago **no compra el sistema**, monta el ambiente donde va a vivir. Nómbralo por lo que es —**"Puesta en producción"**— y márcalo **obligatorio** en el mismo renglón, para que no se lea como opcional.
 
-En el detalle va lo que de verdad cubre: infraestructura, base de datos, dominio, respaldos, control de accesos, activación del servidor de correos a nombre del cliente, y la carga inicial de su información.
+En el detalle va lo que de verdad cubre: infraestructura, base de datos, dominio, respaldos, control de accesos, activación del servidor de correos a nombre del cliente, la carga inicial de su información **y las 40 horas de acompañamiento de Héctor y su equipo** para adaptar la plataforma a la operación del cliente. *(Las 40 horas se movieron aquí el 31-ago-2026, caso Mr. Cocoa v2; antes vivían en el primer mes de la suscripción.)*
 
 #### Una tabla de "Cómo se paga", con momentos
 
@@ -241,9 +241,11 @@ Es la que contesta la pregunta que el cliente se está haciendo. Tres renglones:
 |---|---|
 | **Contra firma** | 50 % de la puesta en producción, más el primer mes de suscripción |
 | **Al término del primer mes** | 50 % restante de la puesta en producción |
-| **A partir del segundo mes** | Suscripción mensual |
+| **Cada mes siguiente** | Suscripción mensual — corre desde el **primer** mes; la primera quedó cubierta contra firma |
 
 **El 50/50 es el esquema estándar**, salvo que Héctor diga otra cosa. Y el monto de "contra firma" **se calcula**: la mitad del inicio más la primera mensualidad, en una sola cifra, para que no tenga que sumarla él.
+
+**El bloque abre diciendo que son DOS pagos y que los dos son obligatorios** —la puesta en producción y la suscripción mensual—, cada uno con su renglón de "qué cubre", para que ninguno se lea como opcional ni como sustituto del otro. **Y la mensualidad corre desde el PRIMER mes, nunca "a partir del segundo"**: la primera se cubre contra firma y las siguientes en los primeros 5 días de cada mes. Escribir "a partir del segundo mes" hace parecer que el primer mes viene gratis. *(31-ago-2026 · Mr. Cocoa v2, orden de Héctor.)*
 
 #### Una sola suscripción, no dos planes
 
@@ -289,13 +291,11 @@ La sección abre con **el precio en grande**, luego la línea del año adelantad
 > *Si prefieren cubrir el año completo por adelantado, se les regala un mes: pagan once en lugar de doce.*
 > …y la tabla Servicio / Descripción.
 
-#### Las horas: 40 el primer mes, 10 los siguientes
+#### Las horas: 40 de acompañamiento en la puesta en producción, 10 mensuales desde el primer mes
 
-**Por omisión** (Héctor, 21-ago-2026): el primer mes van **40 horas de consultoría y desarrollo**, para sentarse con cada área y adaptar la plataforma a cómo trabajan de verdad. De ahí en adelante, **10 horas cada mes**.
+**Por omisión** (Héctor, 31-ago-2026; del 21 al 31-ago las 40 vivieron en el primer mes de la suscripción — ya no): las **40 horas de acompañamiento de Héctor y su equipo** van **dentro de la puesta en producción** — son parte de lo que ese pago cubre y se listan en su renglón de "qué cubre". La suscripción trae **10 horas de mejora cada mes, desde el primero**, siempre la misma cifra.
 
-Las 40 del primer mes **se mencionan también en la tabla de "Cómo se paga"**, en el renglón de contra firma: son parte de lo que justifica ese pago inicial más alto.
-
-Cuidado al cambiar la cifra: aparece en **cuatro lugares** —el renglón de la tabla, el cronograma, la nota de cierre del cronograma y el bloque de pago— y si dejas uno suelto el documento se contradice.
+Cuidado al cambiar cualquiera de las dos cifras: las 40 aparecen en **tres lugares** —el renglón de la puesta en producción, la aclaración en la fila de horas de la suscripción y la nota de cierre del cronograma— y las 10 en dos —el renglón del Pago 2 y la fila de horas—. Si dejas uno suelto, el documento se contradice.
 
 #### Dos renglones que van siempre
 
@@ -657,6 +657,7 @@ Pero el listón es bajo y a propósito: **si el sistema hace algo solo que antes
 
 ## Anti-patrones — NUNCA hacer
 
+- **Escribir "ya está construida y funcionando", "lista para usar hoy", "puede abrirla y usarla hoy" o cualquier variante de plataforma terminada.** Lo que se presenta siempre es una versión de prueba con funcionalidades que aún no están al 100 %; presumirla terminada fabrica una expectativa que la puesta en marcha no puede cumplir y contamina la aceptación del entregable. Se dice *"la plataforma que les presentamos en la demostración"* o *"la versión que recorrieron"* — vende lo mismo (existe y la vieron) sin prometer terminado. Prohibido para siempre, por orden directa de Héctor. *(31-ago-2026 · Mr. Cocoa v2.)*
 - **Que el documento se contradiga.** "No hay renta" con una suscripción; "se llevan todo" con una penalización; "sin permanencia" con un costo de salida. Ver sección 7.
 - **Llamar "plataforma completa" al pago inicial.** No lo es: monta el ambiente de producción. Ver sección 8.
 - **Tabla comparativa de escenarios.** Eliminada de forma permanente.
